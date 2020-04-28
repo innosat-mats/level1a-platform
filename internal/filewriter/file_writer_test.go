@@ -1,4 +1,4 @@
-package main
+package filewriter
 
 import (
 	"reflect"
@@ -402,19 +402,6 @@ func Test_to6by6arr(t *testing.T) {
 			if got := to6by6arr(tt.args.inslice); !reflect.DeepEqual(got[tt.index1][tt.index2], tt.want) {
 				t.Errorf("to6by6arr() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func Test_main(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			main()
 		})
 	}
 }

@@ -1,15 +1,11 @@
-package main
+package filewriter
 
 import (
 	"encoding/json"
-	"fmt"
+	"io/ioutil"
 	"time"
 
 	"gonum.org/v1/hdf5"
-)
-
-const (
-	fname string = "LEVEL_1A_PLATF_20200120-094217_20200120-102136.hdf5"
 )
 
 // PowerRecord for variables in group: "HK_ecPowOps_1"
@@ -360,18 +356,14 @@ func toDateTime(secondsSinceEpoch float64) string {
 	return out
 }
 
-func main() {
+//GetRecords from Level1a file
+func GetRecords(fname string) Records {
 
 	powerRecords := getPowerRecords(fname)
-
 	currentRecords := getCurrentRecords(fname)
-
 	temperatureRecords := getTemperatureRecords(fname)
-
 	gnssRecords := getGnssRecords(fname)
-
 	orbitRecords := getOrbitRecords(fname)
-
 	attitudeRecords := getAttitudeRecords(fname)
 
 	records := Records{
@@ -382,12 +374,11 @@ func main() {
 		OrbitRecords:       orbitRecords,
 		GnssRecords:        gnssRecords,
 	}
+	return records
+}
 
+//WriteRecords records to json file
+func WriteRecords(records Records, outputfile string) {
 	outdata, _ := json.MarshalIndent(records, "", "    ")
-
-	//_ = ioutil.WriteFile("test.json", outdata, 0644)
-
-	//t0 := toDateTime(a1[0].time)
-	fmt.Println(outdata)
-
+	_ = ioutil.WriteFile(outputfile, outdata, 0644)
 }
