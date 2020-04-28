@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/innosat-mats/level1a-platform/tree/filewriter/internal/filewriter"
+	"github.com/innosat-mats/level1a-platform/internal/filewriter"
 )
 
 var outputDirectory *string
