@@ -3,6 +3,7 @@ package filewriter
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"time"
 
 	"gonum.org/v1/hdf5"
@@ -73,97 +74,64 @@ type Records struct {
 	GnssRecords        []GnssRecord        `json:"TM_acGnssOps"`
 }
 
-func getDatasetFloat64(
-	filename string, groupname string, datasetname string) []float64 {
+func getDataset(
+	filename string, groupname string, datasetname string) *hdf5.Dataset {
 
 	f, err := hdf5.OpenFile(filename, hdf5.F_ACC_RDONLY)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err, filename)
 	}
-
 	group, err := f.OpenGroup(groupname)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err, filename, groupname)
 	}
 
 	dataset, err := group.OpenDataset(datasetname)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err, filename, groupname, datasetname)
 	}
+	return dataset
+}
 
+func getDatasetFloat64(
+	filename string, groupname string, datasetname string) []float64 {
+
+	dataset := getDataset(filename, groupname, datasetname)
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]float64, npoints)
-	err = dataset.Read(&data)
+	err := dataset.Read(&data)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err, filename, groupname, datasetname, "data")
 	}
 	dataset.Close()
-	group.Close()
-	f.Close()
-
 	return data
 }
 
 func getDatasetFloat32(
 	filename string, groupname string, datasetname string) []float32 {
 
-	f, err := hdf5.OpenFile(filename, hdf5.F_ACC_RDONLY)
-	if err != nil {
-		panic(err)
-	}
-
-	group, err := f.OpenGroup(groupname)
-	if err != nil {
-		panic(err)
-	}
-
-	dataset, err := group.OpenDataset(datasetname)
-	if err != nil {
-		panic(err)
-	}
-
+	dataset := getDataset(filename, groupname, datasetname)
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]float32, npoints)
-	err = dataset.Read(&data)
+	err := dataset.Read(&data)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err, filename, groupname, datasetname, "data")
 	}
-
 	dataset.Close()
-	group.Close()
-	f.Close()
-
 	return data
 }
 
-func getDatasetUint8(filename string, groupname string, datasetname string) []uint8 {
+func getDatasetUint8(
+	filename string, groupname string, datasetname string) []uint8 {
 
-	f, err := hdf5.OpenFile(filename, hdf5.F_ACC_RDONLY)
-	if err != nil {
-		panic(err)
-	}
-
-	group, err := f.OpenGroup(groupname)
-	if err != nil {
-		panic(err)
-	}
-
-	dataset, err := group.OpenDataset(datasetname)
-	if err != nil {
-		panic(err)
-	}
-
+	dataset := getDataset(filename, groupname, datasetname)
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]uint8, npoints)
-	err = dataset.Read(&data)
+	err := dataset.Read(&data)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err, filename, groupname, datasetname, "data")
 	}
-
 	dataset.Close()
-	group.Close()
-	f.Close()
-
 	return data
 }
 
@@ -378,7 +346,16 @@ func GetRecords(fname string) Records {
 }
 
 //WriteRecords records to json file
-func WriteRecords(records Records, outputfile string) {
-	outdata, _ := json.MarshalIndent(records, "", "    ")
-	_ = ioutil.WriteFile(outputfile, outdata, 0644)
+func WriteRecords(records Records, outputfile string) error {
+	outdata, err := json.MarshalIndent(records, "", "    ")
+	if err != nil {
+		log.Fatalln(err)
+		return err
+	}
+	err = ioutil.WriteFile(outputfile, outdata, 0644)
+	if err != nil {
+		log.Fatalln(err)
+		return err
+	}
+	return err
 }

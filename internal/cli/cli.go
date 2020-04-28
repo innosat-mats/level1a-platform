@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path"
 
@@ -13,10 +14,9 @@ var outputDirectory *string
 var stdout *bool
 
 func processFiles(
-	inputFiles []string, stdout bool, outputDirectory string) int {
+	inputFiles []string, stdout bool, outputDirectory string) error {
 
-	for n, filename := range inputFiles {
-		fmt.Println(n)
+	for _, filename := range inputFiles {
 		records := filewriter.GetRecords(filename)
 		if stdout {
 			fmt.Println(records)
@@ -25,10 +25,14 @@ func processFiles(
 			outfile := path.Join(
 				outputDirectory, path.Base(filename)+".json",
 			)
-			filewriter.WriteRecords(records, outfile)
+			err := filewriter.WriteRecords(records, outfile)
+			if err != nil {
+				log.Fatalln(err)
+				return err
+			}
 		}
 	}
-	return 0
+	return nil
 }
 
 //myUsage replaces default usage since it doesn't include information on non-flags
@@ -60,6 +64,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	processFiles(inputFiles, *stdout, *outputDirectory)
-
+	err := processFiles(inputFiles, *stdout, *outputDirectory)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
