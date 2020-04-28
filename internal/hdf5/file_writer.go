@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"gonum.org/v1/hdf5"
@@ -282,24 +281,17 @@ func getOrbitRecords(filename string) []OrbitRecord {
 	gnssStateJ2000 := getDatasetFloat64(filename, group, "acsGnssStateJ2000")
 	uncertainty := getDatasetFloat64(filename, group, "acsNavigationUncertainty")
 
-	var records []OrbitRecord
-
 	//uncertainty is common to all records
-	var uncertainty2d [6][6]float64
-	for i := 0; i < 6; i++ {
-		for j := 0; j < 6; j++ {
-			uncertainty2d[i][j] = uncertainty[i*6+j]
-		}
-	}
+	uncertainty2d := to6by6arr(uncertainty)
+
+	var records []OrbitRecord
 	n := len(time)
 	for i := 0; i < n; i++ {
 		record := OrbitRecord{
 			Time:        time[i],
 			Uncertainty: uncertainty2d,
 		}
-		for j := 0; j < 6; j++ {
-			record.GnssStateJ2000[j] = gnssStateJ2000[i+j*n]
-		}
+		copy(record.GnssStateJ2000[:], to1DSlice(gnssStateJ2000, 6, n, i))
 		records = append(records, record)
 	}
 	return records
@@ -320,22 +312,44 @@ func getAttitudeRecords(filename string) []AttitudeRecord {
 	n := len(time)
 	for i := 0; i < n; i++ {
 		record := AttitudeRecord{Time: time[i]}
-		for j := 0; j < 3; j++ {
-			record.SpacecraftRate[j] = spacecraftRate[i+j*n]
-			record.TangentPoint[j] = tangentPoint[i+j*n]
-		}
-		for j := 0; j < 4; j++ {
-			record.AttitudeState[j] = attitudeState[i+j*n]
-		}
-		for j := 0; j < 3; j++ {
-			for k := 0; k < 3; k++ {
-				record.AttitudeUncertainty[j][k] = attitudeUncertainty[i*9+j*3+k]
-				record.RateUncertainty[j][k] = rateUncertainty[i*9+j*3+k]
-			}
-		}
+		copy(record.SpacecraftRate[:], to1DSlice(spacecraftRate, 3, n, i))
+		copy(record.TangentPoint[:], to1DSlice(tangentPoint, 3, n, i))
+		copy(record.AttitudeState[:], to1DSlice(attitudeState, 4, n, i))
+		record.AttitudeUncertainty = to3by3arr(attitudeUncertainty, i)
+		record.RateUncertainty = to3by3arr(rateUncertainty, i)
 		records = append(records, record)
 	}
 	return records
+}
+
+func to1DSlice(inslice []float64, sizeDim1 int, sizeDim2, offset int) []float64 {
+	//returns a 1-d slice extracted from a 1-d slice that is a representation
+	//of a 2-Darray with shape (sizeDim1, sizeDim2)
+	outslice := make([]float64, sizeDim1)
+	for i := 0; i < sizeDim1; i++ {
+		outslice[i] = inslice[offset+i*sizeDim2]
+	}
+	return outslice
+}
+
+func to3by3arr(inslice []float64, offset int) [3][3]float64 {
+	//returns a 3 x 3 array extracted from a 1-d slice that is a representation
+	//of an array with shape (len(inslice)/9, n, n)
+	var arr [3][3]float64
+	for i := 0; i < 3; i++ {
+		start := offset*9 + i*3
+		copy(arr[i][:], inslice[start:start+3])
+	}
+	return arr
+}
+
+func to6by6arr(inslice []float64) [6][6]float64 {
+	//returns a 6 x 6 array extracted from a 1-d slice of len 36
+	var arr [6][6]float64
+	for i := 0; i < 6; i++ {
+		copy(arr[i][:], inslice[i*6:i*6+6])
+	}
+	return arr
 }
 
 func toDateTime(secondsSinceEpoch float64) string {
@@ -368,8 +382,10 @@ func main() {
 		OrbitRecords:       orbitRecords,
 		GnssRecords:        gnssRecords,
 	}
+
 	outdata, _ := json.MarshalIndent(records, "", "    ")
-	_ = ioutil.WriteFile("test.json", outdata, 0644)
+
+	//_ = ioutil.WriteFile("test.json", outdata, 0644)
 
 	//t0 := toDateTime(a1[0].time)
 	fmt.Println(outdata)
