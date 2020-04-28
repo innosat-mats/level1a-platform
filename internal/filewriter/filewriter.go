@@ -345,7 +345,7 @@ func GetRecords(fname string) Records {
 	return records
 }
 
-//WriteRecords records to json file
+//WriteRecords write records to json file
 func WriteRecords(records Records, outputfile string) error {
 	outdata, err := json.MarshalIndent(records, "", "    ")
 	if err != nil {
