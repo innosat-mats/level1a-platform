@@ -1,8 +1,12 @@
 package platform
 
 import (
+	"io/ioutil"
+	"log"
+	"path"
 	"reflect"
 	"testing"
+	"time"
 )
 
 const (
@@ -16,10 +20,10 @@ func Test_toDateTime(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want string
+		want time.Time
 	}{
-		{"0", args{0}, "1980-01-06T00:00:00Z"},
-		{"1", args{1.123}, "1980-01-06T00:00:01.123Z"},
+		{"0", args{0}, time.Date(1980, 1, 6, 0, 0, 0, 0, time.UTC)},
+		{"1", args{3601.123}, time.Date(1980, 1, 6, 1, 0, 1, 123000000, time.UTC)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -117,9 +121,24 @@ func Test_getPowerRecords(t *testing.T) {
 		index int
 		want  PowerRecord
 	}{
-		{"0", args{testfile}, 0, PowerRecord{1.2767113859339905e+09, 32.867725, 0, 36.02206, 0}},
-		{"1", args{testfile}, 1, PowerRecord{1.2767113959339905e+09, 32.8726, 0, 36.027405, 0}},
-		{"2", args{testfile}, 4220, PowerRecord{1.2767535851099854e+09, 32.965195, 0, 36.34141, 0}},
+		{
+			"0",
+			args{testfile},
+			0,
+			PowerRecord{toDateTime(1.2767113859339905e+09), 32.867725, 0, 36.02206, 0},
+		},
+		{
+			"1",
+			args{testfile},
+			1,
+			PowerRecord{toDateTime(1.2767113959339905e+09), 32.8726, 0, 36.027405, 0},
+		},
+		{
+			"2",
+			args{testfile},
+			4220,
+			PowerRecord{toDateTime(1.2767535851099854e+09), 32.965195, 0, 36.34141, 0},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -140,9 +159,23 @@ func Test_getCurrentRecords(t *testing.T) {
 		index int
 		want  CurrentRecord
 	}{
-		{"0", args{testfile}, 0, CurrentRecord{1.2767113959339905e+09, 4}},
-		{"1", args{testfile}, 1, CurrentRecord{1.2767114259339905e+09, 4}},
-		{"2", args{testfile}, 1406, CurrentRecord{1.2767535751099854e+09, 4}},
+		{
+			"0", args{testfile},
+			0,
+			CurrentRecord{toDateTime(1.2767113959339905e+09), 4},
+		},
+		{
+			"1",
+			args{testfile},
+			1,
+			CurrentRecord{toDateTime(1.2767114259339905e+09), 4},
+		},
+		{
+			"2",
+			args{testfile},
+			1406,
+			CurrentRecord{toDateTime(1.2767535751099854e+09), 4},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -164,21 +197,27 @@ func Test_getTemperatureRecords(t *testing.T) {
 		want  TemperatureRecord
 	}{
 		{
-			"0", args{testfile}, 0,
+			"0",
+			args{testfile},
+			0,
 			TemperatureRecord{
-				1.2767113959339905e+09, 20.010345, 19.996307, 19.996307, 19.96872, 19.978027,
+				toDateTime(1.2767113959339905e+09), 20.010345, 19.996307, 19.996307, 19.96872, 19.978027,
 			},
 		},
 		{
-			"1", args{testfile}, 1,
+			"1",
+			args{testfile},
+			1,
 			TemperatureRecord{
-				1.2767114559339905e+09, 20.010345, 19.996307, 19.996307, 19.96872, 19.978027,
+				toDateTime(1.2767114559339905e+09), 20.010345, 19.996307, 19.996307, 19.96872, 19.978027,
 			},
 		},
 		{
-			"2", args{testfile}, 703,
+			"2",
+			args{testfile},
+			703,
 			TemperatureRecord{
-				1.2767535751099854e+09, 20.010345, 19.996307, 19.996307, 19.96872, 19.978027,
+				toDateTime(1.2767535751099854e+09), 20.010345, 19.996307, 19.996307, 19.96872, 19.978027,
 			},
 		},
 	}
@@ -204,7 +243,7 @@ func Test_getAttitudeRecords(t *testing.T) {
 		{
 			"0", args{testfile}, 0,
 			AttitudeRecord{
-				1.276711377343e+09,
+				toDateTime(1.276711377343e+09),
 				[4]float64{0.9300403510407163, 0.08283207095795848, -0.3567427081245257, 0.02997388291257447},
 				[3][3]float64{
 					{1.180738526120703e-09, -3.856314966778513e-11, 1.1180929218625675e-10},
@@ -240,18 +279,29 @@ func Test_getGnssRecords(t *testing.T) {
 		index int
 		want  GnssRecord
 	}{
-		{"0", args{testfile}, 0, GnssRecord{1.2767113859339905e+09, 110, 0, 0, 0, 0, 0, 0, 0}},
 		{
-			"1", args{testfile}, 100,
-			GnssRecord{
-				1.2767123851099854e+09, 0, 6913.21, -332.256, -3204.408, 2.9483498e+06,
-				981803.06, 6.2385e+06, 1.276712385e+09},
+			"0",
+			args{testfile},
+			0,
+			GnssRecord{toDateTime(1.2767113859339905e+09), 110, 0, 0, 0, 0, 0, 0, 0},
 		},
 		{
-			"2", args{testfile}, 4220,
+			"1",
+			args{testfile},
+			100,
 			GnssRecord{
-				1.2767535851099854e+09, 0, -3186.8157, 808.53485, -6895.182, -6.237176e+06,
-				-1.5812031e+06, 2.6921988e+06, 1.276753585e+09},
+				toDateTime(1.2767123851099854e+09), 0, 6913.21, -332.256, -3204.408,
+				2.9483498e+06, 981803.06, 6.2385e+06, 1.276712385e+09,
+			},
+		},
+		{
+			"2",
+			args{testfile},
+			4220,
+			GnssRecord{
+				toDateTime(1.2767535851099854e+09), 0, -3186.8157, 808.53485, -6895.182,
+				-6.237176e+06, -1.5812031e+06, 2.6921988e+06, 1.276753585e+09,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -276,7 +326,7 @@ func Test_getOrbitRecords(t *testing.T) {
 		{
 			"0", args{testfile}, 0,
 			OrbitRecord{
-				0,
+				toDateTime(0),
 				[6]float64{0, 0, 0, 0, 0, 0},
 				[6][6]float64{
 					{1.30100331462404, 0, 0.0742053222749471, 0.0256080096618077, 0, 0.000154822624482059},
@@ -291,7 +341,7 @@ func Test_getOrbitRecords(t *testing.T) {
 		{
 			"1", args{testfile}, 4220,
 			OrbitRecord{
-				1.276753585e+09,
+				toDateTime(1.276753585e+09),
 				[6]float64{
 					-6.323881153384321e+06, -1.159463796322383e+06, 2.7045646212289413e+06,
 					-3223.4601646163687, 1481.9640123949955, -6888.881321980694,
@@ -418,7 +468,7 @@ func TestGetRecords(t *testing.T) {
 		{
 			"0",
 			args{testfile},
-			PowerRecord{1.2767113859339905e+09, 32.867725, 0, 36.02206, 0},
+			PowerRecord{toDateTime(1.2767113859339905e+09), 32.867725, 0, 36.02206, 0},
 		},
 	}
 	for _, tt := range tests {
@@ -449,6 +499,51 @@ func TestGetFilepath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := GetFilepath(tt.args.inputFile, tt.args.outputDirectory); got != tt.want {
 				t.Errorf("GetFilepath() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func dummyRecord() Records {
+	currentRecord := CurrentRecord{
+		Time: toDateTime(0),
+		Mode: 2,
+	}
+	return Records{
+		CurrentRecords: []CurrentRecord{currentRecord},
+	}
+}
+
+func outputfilepath() string {
+	dir, err := ioutil.TempDir("/tmp", "mats-testing")
+	if err != nil {
+		log.Fatal(err)
+	}
+	outputFile := path.Join(dir, "test.json")
+	return outputFile
+}
+
+func TestWriteRecords(t *testing.T) {
+	type args struct {
+		records    Records
+		outputfile string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{"0", args{dummyRecord(), outputfilepath()}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := WriteRecords(tt.args.records, tt.args.outputfile); (err != nil) != tt.wantErr {
+				t.Errorf("WriteRecords() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			//read generated file and check that is ok
+			records := unmarshalRecords(tt.args.outputfile)
+			if records.CurrentRecords[0].Time != toDateTime(0) {
+				t.Errorf("unmarslaed records not consistent to input records")
 			}
 		})
 	}

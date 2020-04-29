@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -12,9 +13,11 @@ import (
 	"gonum.org/v1/hdf5"
 )
 
+var dateEpochGPS = time.Date(1980, 1, 6, 0, 0, 0, 0, time.UTC)
+
 // PowerRecord for variables in group: "HK_ecPowOps_1"
 type PowerRecord struct {
-	Time           float64
+	Time           time.Time
 	MainBusVoltage float32 `json:"eciMpduMainBusVoltage"`
 	PowerheatStr   float32 `json:"ecoUnitPower_heatStr"`
 	PowerplMain    float32 `json:"ecoUnitPower_plMain"`
@@ -23,13 +26,13 @@ type PowerRecord struct {
 
 // CurrentRecord for variables in group: "HK_scSysOps_1"
 type CurrentRecord struct {
-	Time float64
+	Time time.Time
 	Mode uint8 `json:"scoCurrentScMode"`
 }
 
 // TemperatureRecord for variables in group: "HK_tcThermEssential"
 type TemperatureRecord struct {
-	Time            float64
+	Time            time.Time
 	Temppl          float32 `json:"tcoTemp_pl"`
 	Tempsa1         float32 `json:"tcoTemp_sa1"`
 	Tempsa2         float32 `json:"tcoTemp_sa2"`
@@ -39,7 +42,7 @@ type TemperatureRecord struct {
 
 // AttitudeRecord for variables in group: "PreciseAttitudeEstimation"
 type AttitudeRecord struct {
-	Time                float64
+	Time                time.Time
 	AttitudeState       [4]float64    `json:"afsAttitudeState"`
 	AttitudeUncertainty [3][3]float64 `json:"afsAttitudeUncertainty"`
 	RateUncertainty     [3][3]float64 `json:"afsRateUncertainty"`
@@ -49,14 +52,14 @@ type AttitudeRecord struct {
 
 // OrbitRecord for variables in group: "PreciseOrbitEstimation"
 type OrbitRecord struct {
-	Time           float64
+	Time           time.Time
 	GnssStateJ2000 [6]float64    `json:"acsGnssStateJ2000"`
 	Uncertainty    [6][6]float64 `json:"acsNavigationUncertainty"`
 }
 
 // GnssRecord for variables in group: "TM_acGnssOps"
 type GnssRecord struct {
-	Time            float64
+	Time            time.Time
 	PropagationTime uint8   `json:"acoOnGnssPropagationTime"`
 	StateEcefVX     float32 `json:"acoOnGnssStateEcef_vx"`
 	StateEcefVY     float32 `json:"acoOnGnssStateEcef_vy"`
@@ -151,7 +154,7 @@ func getPowerRecords(filename string) []PowerRecord {
 	var records []PowerRecord
 	for i := range time {
 		record := PowerRecord{
-			Time:           time[i],
+			Time:           toDateTime(time[i]),
 			MainBusVoltage: mainBusVoltage[i],
 			PowerheatStr:   powerheatStr[i],
 			PowerplMain:    powerplMain[i],
@@ -173,7 +176,7 @@ func getCurrentRecords(filename string) []CurrentRecord {
 	var records []CurrentRecord
 	for i := range time {
 		record := CurrentRecord{
-			Time: time[i],
+			Time: toDateTime(time[i]),
 			Mode: mode[i],
 		}
 		records = append(records, record)
@@ -195,7 +198,7 @@ func getTemperatureRecords(filename string) []TemperatureRecord {
 	var records []TemperatureRecord
 	for i := range time {
 		record := TemperatureRecord{
-			Time:            time[i],
+			Time:            toDateTime(time[i]),
 			Temppl:          temppl[i],
 			Tempsa1:         tempsa1[i],
 			Tempsa2:         tempsa2[i],
@@ -224,7 +227,7 @@ func getGnssRecords(filename string) []GnssRecord {
 	var records []GnssRecord
 	for i := range time {
 		record := GnssRecord{
-			Time:            time[i],
+			Time:            toDateTime(time[i]),
 			PropagationTime: propagationTime[i],
 			StateEcefVX:     stateEcefVX[i],
 			StateEcefVY:     stateEcefVY[i],
@@ -255,7 +258,7 @@ func getOrbitRecords(filename string) []OrbitRecord {
 	n := len(time)
 	for i := range time {
 		record := OrbitRecord{
-			Time:        time[i],
+			Time:        toDateTime(time[i]),
 			Uncertainty: uncertainty2d,
 		}
 		copy(record.GnssStateJ2000[:], to1DSlice(gnssStateJ2000, 6, n, i))
@@ -278,7 +281,7 @@ func getAttitudeRecords(filename string) []AttitudeRecord {
 	var records []AttitudeRecord
 	n := len(time)
 	for i := range time {
-		record := AttitudeRecord{Time: time[i]}
+		record := AttitudeRecord{Time: toDateTime(time[i])}
 		copy(record.SpacecraftRate[:], to1DSlice(spacecraftRate, 3, n, i))
 		copy(record.TangentPoint[:], to1DSlice(tangentPoint, 3, n, i))
 		copy(record.AttitudeState[:], to1DSlice(attitudeState, 4, n, i))
@@ -319,13 +322,10 @@ func to6by6arr(inslice []float64) [6][6]float64 {
 	return arr
 }
 
-func toDateTime(secondsSinceEpoch float64) string {
+func toDateTime(secondsSinceEpoch float64) time.Time {
 	dt := time.Duration(secondsSinceEpoch*1e9) * time.Nanosecond
-	start := time.Date(1980, 1, 6, 0, 0, 0, 0, time.UTC)
-	datetime := start.Add(dt)
-	out := datetime.Format(time.RFC3339Nano)
-	//(time.RFC3339)
-	return out
+	datetime := dateEpochGPS.Add(dt)
+	return datetime
 }
 
 //GetFilepath manipulates filename
@@ -376,4 +376,18 @@ func WriteRecords(records Records, outputfile string) error {
 		return err
 	}
 	return err
+}
+
+func unmarshalRecords(filename string) Records {
+	jsonFile, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	byteValue, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var records Records
+	json.Unmarshal(byteValue, &records)
+	return records
 }

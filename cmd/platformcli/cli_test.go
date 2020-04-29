@@ -3,12 +3,16 @@ package main
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/innosat-mats/level1a-platform/internal/platform"
 )
 
 func recordsGetter(fname string) platform.Records {
-	currentRecords := platform.CurrentRecord{Time: 0, Mode: 0}
+	currentRecords := platform.CurrentRecord{
+		Time: time.Now(),
+		Mode: 0,
+	}
 	return platform.Records{
 		CurrentRecords: []platform.CurrentRecord{currentRecords},
 	}

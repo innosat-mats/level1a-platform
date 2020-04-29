@@ -20,9 +20,7 @@ func processFiles(
 		records := recordsGetter(inputFile)
 		if stdout {
 			fmt.Println(records)
-			return nil
-		}
-		if outputDirectory != "" {
+		} else {
 			outputFile := platform.GetFilepath(
 				inputFile, outputDirectory)
 			err := recordsWriter(records, outputFile)
