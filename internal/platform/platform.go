@@ -320,10 +320,11 @@ func to6by6arr(inslice []float64) [6][6]float64 {
 }
 
 func toDateTime(secondsSinceEpoch float64) string {
-	dt := time.Duration(secondsSinceEpoch) * time.Second
+	dt := time.Duration(secondsSinceEpoch*1e9) * time.Nanosecond
 	start := time.Date(1980, 1, 6, 0, 0, 0, 0, time.UTC)
 	datetime := start.Add(dt)
-	out := datetime.Format(time.RFC3339)
+	out := datetime.Format(time.RFC3339Nano)
+	//(time.RFC3339)
 	return out
 }
 
@@ -368,12 +369,10 @@ type RecordsWriter func(records Records, outputfile string) error
 func WriteRecords(records Records, outputfile string) error {
 	outdata, err := json.MarshalIndent(records, "", "    ")
 	if err != nil {
-		log.Fatalln(err)
 		return err
 	}
 	err = ioutil.WriteFile(outputfile, outdata, 0644)
 	if err != nil {
-		log.Fatalln(err)
 		return err
 	}
 	return err

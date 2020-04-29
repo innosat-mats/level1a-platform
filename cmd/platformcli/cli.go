@@ -20,13 +20,13 @@ func processFiles(
 		records := recordsGetter(inputFile)
 		if stdout {
 			fmt.Println(records)
+			return nil
 		}
 		if outputDirectory != "" {
 			outputFile := platform.GetFilepath(
 				inputFile, outputDirectory)
 			err := recordsWriter(records, outputFile)
 			if err != nil {
-				//log.Fatalln(err)
 				return err
 			}
 		}
@@ -45,7 +45,7 @@ func myUsage() {
 
 func init() {
 	outputDirectory = flag.String("output", "", "Directory to place timeseries data files")
-	stdout = flag.Bool("stdout", false, "Output to standard out instead of to disk (only timeseries)\n(Default: false)")
+	stdout = flag.Bool("stdout", false, "Output to standard out instead of to disk\n(Default: false)")
 	flag.Usage = myUsage
 }
 

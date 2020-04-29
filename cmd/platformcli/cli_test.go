@@ -36,9 +36,15 @@ func Test_processFiles(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"testwritefilesfail", args{recordsGetter, recordsWriterError, []string{"test.h5"}, true, "/tmp"}, true},
-		{"testnotfail_nooutdir", args{recordsGetter, recordsWriterError, []string{"test.h5"}, true, ""}, false},
-		{"testwritefilesnofail", args{recordsGetter, recordsWriterOk, []string{"test.h5"}, true, "/tmp"}, false},
+		{
+			"test_stdout_true_does_not_write_to_disk",
+			args{recordsGetter, recordsWriterError, []string{"test.h5"}, true, "/tmp"}, false},
+		{
+			"test_write_to_disk_fail_returns_error",
+			args{recordsGetter, recordsWriterError, []string{"test.h5"}, false, "/tmp"}, true},
+		{
+			"test_write_to_disk_ok",
+			args{recordsGetter, recordsWriterOk, []string{"test.h5"}, true, "/tmp"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

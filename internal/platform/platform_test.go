@@ -19,7 +19,7 @@ func Test_toDateTime(t *testing.T) {
 		want string
 	}{
 		{"0", args{0}, "1980-01-06T00:00:00Z"},
-		{"1", args{1}, "1980-01-06T00:00:01Z"},
+		{"1", args{1.123}, "1980-01-06T00:00:01.123Z"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -425,27 +425,6 @@ func TestGetRecords(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := GetRecords(tt.args.fname); !reflect.DeepEqual(got.PowerRecords[0], tt.want) {
 				t.Errorf("GetRecords() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestWriteRecords(t *testing.T) {
-	type args struct {
-		records    Records
-		outputfile string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := WriteRecords(tt.args.records, tt.args.outputfile); (err != nil) != tt.wantErr {
-				t.Errorf("WriteRecords() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
