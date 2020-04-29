@@ -146,7 +146,7 @@ func getPowerRecords(filename string) []PowerRecord {
 	powerplSafe := getDatasetFloat32(filename, group, "ecoUnitPower_plSafe")
 
 	var records []PowerRecord
-	for i := 0; i < len(time); i++ {
+	for i := range time {
 		record := PowerRecord{
 			Time:           time[i],
 			MainBusVoltage: mainBusVoltage[i],
@@ -168,7 +168,7 @@ func getCurrentRecords(filename string) []CurrentRecord {
 	mode := getDatasetUint8(filename, group, "scoCurrentScMode")
 
 	var records []CurrentRecord
-	for i := 0; i < len(time); i++ {
+	for i := range time {
 		record := CurrentRecord{
 			Time: time[i],
 			Mode: mode[i],
@@ -190,7 +190,7 @@ func getTemperatureRecords(filename string) []TemperatureRecord {
 	tempstr := getDatasetFloat32(filename, group, "tcoTemp_str")
 
 	var records []TemperatureRecord
-	for i := 0; i < len(time); i++ {
+	for i := range time {
 		record := TemperatureRecord{
 			Time:            time[i],
 			Temppl:          temppl[i],
@@ -219,7 +219,7 @@ func getGnssRecords(filename string) []GnssRecord {
 	stateTime := getDatasetFloat64(filename, group, "acoOnGnssStateTime")
 
 	var records []GnssRecord
-	for i := 0; i < len(time); i++ {
+	for i := range time {
 		record := GnssRecord{
 			Time:            time[i],
 			PropagationTime: propagationTime[i],
@@ -250,7 +250,7 @@ func getOrbitRecords(filename string) []OrbitRecord {
 
 	var records []OrbitRecord
 	n := len(time)
-	for i := 0; i < n; i++ {
+	for i := range time {
 		record := OrbitRecord{
 			Time:        time[i],
 			Uncertainty: uncertainty2d,
@@ -274,7 +274,7 @@ func getAttitudeRecords(filename string) []AttitudeRecord {
 
 	var records []AttitudeRecord
 	n := len(time)
-	for i := 0; i < n; i++ {
+	for i := range time {
 		record := AttitudeRecord{Time: time[i]}
 		copy(record.SpacecraftRate[:], to1DSlice(spacecraftRate, 3, n, i))
 		copy(record.TangentPoint[:], to1DSlice(tangentPoint, 3, n, i))

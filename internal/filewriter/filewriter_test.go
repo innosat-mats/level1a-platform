@@ -405,3 +405,48 @@ func Test_to6by6arr(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRecords(t *testing.T) {
+	type args struct {
+		fname string
+	}
+	tests := []struct {
+		name string
+		args args
+		want PowerRecord
+	}{
+		{
+			"0",
+			args{testfile},
+			PowerRecord{1.2767113859339905e+09, 32.867725, 0, 36.02206, 0},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetRecords(tt.args.fname); !reflect.DeepEqual(got.PowerRecords[0], tt.want) {
+				t.Errorf("GetRecords() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWriteRecords(t *testing.T) {
+	type args struct {
+		records    Records
+		outputfile string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := WriteRecords(tt.args.records, tt.args.outputfile); (err != nil) != tt.wantErr {
+				t.Errorf("WriteRecords() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
