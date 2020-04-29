@@ -1,4 +1,4 @@
-package filewriter
+package platform
 
 import (
 	"encoding/json"

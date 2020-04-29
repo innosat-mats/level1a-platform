@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/innosat-mats/level1a-platform/internal/filewriter"
+	"github.com/innosat-mats/level1a-platform/internal/platform"
 )
 
 var outputDirectory *string
@@ -17,7 +17,7 @@ func processFiles(
 	inputFiles []string, stdout bool, outputDirectory string) error {
 
 	for _, filename := range inputFiles {
-		records := filewriter.GetRecords(filename)
+		records := platform.GetRecords(filename)
 		if stdout {
 			fmt.Println(records)
 		}
@@ -25,7 +25,7 @@ func processFiles(
 			outfile := path.Join(
 				outputDirectory, path.Base(filename)+".json",
 			)
-			err := filewriter.WriteRecords(records, outfile)
+			err := platform.WriteRecords(records, outfile)
 			if err != nil {
 				log.Fatalln(err)
 				return err

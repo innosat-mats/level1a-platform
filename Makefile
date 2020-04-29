@@ -4,12 +4,15 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
+GOINSTALL=$(GOCMD) install
 BIN_DIR=bin
 
 
 all: test build
 build: 
-		$(GOBUILD) -o $(BIN_DIR) -v ./...
+		$(GOBUILD) -v ./...
+install:
+		$(GOINSTALL) ./...
 test: 
 		$(GOTEST) -v ./...
 clean: 
