@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/innosat-mats/level1a-platform/internal/platform"
 )
@@ -16,16 +18,19 @@ var stdout *bool
 func processFiles(
 	inputFiles []string, stdout bool, outputDirectory string) error {
 
-	for _, filename := range inputFiles {
-		records := platform.GetRecords(filename)
+	for _, inputFile := range inputFiles {
+		records := platform.GetRecords(inputFile)
 		if stdout {
 			fmt.Println(records)
 		}
 		if outputDirectory != "" {
-			outfile := path.Join(
-				outputDirectory, path.Base(filename)+".json",
+			outputFile := path.Join(
+				outputDirectory,
+				strings.TrimSuffix(
+					path.Base(inputFile), filepath.Ext(inputFile),
+				)+".json",
 			)
-			err := platform.WriteRecords(records, outfile)
+			err := platform.WriteRecords(records, outputFile)
 			if err != nil {
 				log.Fatalln(err)
 				return err
