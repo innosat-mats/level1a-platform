@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"gonum.org/v1/hdf5"
@@ -324,9 +327,22 @@ func toDateTime(secondsSinceEpoch float64) string {
 	return out
 }
 
+//GetFilepath manipulates filename
+func GetFilepath(inputFile string, outputDirectory string) string {
+	outputFile := path.Join(
+		outputDirectory,
+		strings.TrimSuffix(
+			path.Base(inputFile), filepath.Ext(inputFile),
+		)+".json",
+	)
+	return outputFile
+}
+
+//RecordsGetter for testing
+type RecordsGetter func(fname string) Records
+
 //GetRecords from Level1a file
 func GetRecords(fname string) Records {
-
 	powerRecords := getPowerRecords(fname)
 	currentRecords := getCurrentRecords(fname)
 	temperatureRecords := getTemperatureRecords(fname)
@@ -344,6 +360,9 @@ func GetRecords(fname string) Records {
 	}
 	return records
 }
+
+//RecordsWriter for testing
+type RecordsWriter func(records Records, outputfile string) error
 
 //WriteRecords write records to json file
 func WriteRecords(records Records, outputfile string) error {

@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
-	"path/filepath"
-	"strings"
 
 	"github.com/innosat-mats/level1a-platform/internal/platform"
 )
@@ -16,23 +13,20 @@ var outputDirectory *string
 var stdout *bool
 
 func processFiles(
+	recordsGetter platform.RecordsGetter,
+	recordsWriter platform.RecordsWriter,
 	inputFiles []string, stdout bool, outputDirectory string) error {
-
 	for _, inputFile := range inputFiles {
-		records := platform.GetRecords(inputFile)
+		records := recordsGetter(inputFile)
 		if stdout {
 			fmt.Println(records)
 		}
 		if outputDirectory != "" {
-			outputFile := path.Join(
-				outputDirectory,
-				strings.TrimSuffix(
-					path.Base(inputFile), filepath.Ext(inputFile),
-				)+".json",
-			)
-			err := platform.WriteRecords(records, outputFile)
+			outputFile := platform.GetFilepath(
+				inputFile, outputDirectory)
+			err := recordsWriter(records, outputFile)
 			if err != nil {
-				log.Fatalln(err)
+				//log.Fatalln(err)
 				return err
 			}
 		}
@@ -69,7 +63,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := processFiles(inputFiles, *stdout, *outputDirectory)
+	err := processFiles(
+		platform.GetRecords, platform.WriteRecords,
+		inputFiles, *stdout, *outputDirectory)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -450,3 +450,27 @@ func TestWriteRecords(t *testing.T) {
 		})
 	}
 }
+
+func TestGetFilepath(t *testing.T) {
+	type args struct {
+		inputFile       string
+		outputDirectory string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"0", args{"/test/mats.h5", "/out"}, "/out/mats.json"},
+		{"1", args{"/test/mats", "/out"}, "/out/mats.json"},
+		{"2", args{"mats.h5", "/out"}, "/out/mats.json"},
+		{"3", args{"johnny.h5", "/tmp/out/"}, "/tmp/out/johnny.json"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetFilepath(tt.args.inputFile, tt.args.outputDirectory); got != tt.want {
+				t.Errorf("GetFilepath() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
