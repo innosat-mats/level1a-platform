@@ -99,7 +99,8 @@ func (r Records) Write(outputfile string) error {
 }
 
 func getDataset(
-	filename string, groupname string, datasetname string) *hdf5.Dataset {
+	filename string, groupname string, datasetname string) (
+	*hdf5.Dataset, *hdf5.Group, *hdf5.File) {
 
 	f, err := hdf5.OpenFile(filename, hdf5.F_ACC_RDONLY)
 	if err != nil {
@@ -114,14 +115,16 @@ func getDataset(
 	if err != nil {
 		log.Fatalln(err, filename, groupname, datasetname)
 	}
-	return dataset
+	return dataset, group, f
 }
 
 func getDatasetFloat64(
 	filename string, groupname string, datasetname string) []float64 {
 
-	dataset := getDataset(filename, groupname, datasetname)
+	dataset, group, f := getDataset(filename, groupname, datasetname)
 	defer dataset.Close()
+	defer group.Close()
+	defer f.Close()
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]float64, npoints)
 	err := dataset.Read(&data)
@@ -134,8 +137,10 @@ func getDatasetFloat64(
 func getDatasetFloat32(
 	filename string, groupname string, datasetname string) []float32 {
 
-	dataset := getDataset(filename, groupname, datasetname)
+	dataset, group, f := getDataset(filename, groupname, datasetname)
 	defer dataset.Close()
+	defer group.Close()
+	defer f.Close()
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]float32, npoints)
 	err := dataset.Read(&data)
@@ -148,8 +153,10 @@ func getDatasetFloat32(
 func getDatasetUint8(
 	filename string, groupname string, datasetname string) []uint8 {
 
-	dataset := getDataset(filename, groupname, datasetname)
+	dataset, group, f := getDataset(filename, groupname, datasetname)
 	defer dataset.Close()
+	defer group.Close()
+	defer f.Close()
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]uint8, npoints)
 	err := dataset.Read(&data)
@@ -314,7 +321,8 @@ func to1DSlice(inslice []float64, sizeDim1 int, sizeDim2, offset int) []float64 
 	//returns a 1-d slice extracted from a 1-d slice that is a representation
 	//of a 2-Darray with shape (sizeDim1, sizeDim2)
 	outslice := make([]float64, sizeDim1)
-	for i := 0; i < sizeDim1; i++ {
+	//for i := 0; i < sizeDim1; i++ {
+	for i := range outslice {
 		outslice[i] = inslice[offset+i*sizeDim2]
 	}
 	return outslice
@@ -324,7 +332,7 @@ func to3by3arr(inslice []float64, offset int) [3][3]float64 {
 	//returns a 3 x 3 array extracted from a 1-d slice that is a representation
 	//of an array with shape (len(inslice)/9, n, n)
 	var arr [3][3]float64
-	for i := 0; i < 3; i++ {
+	for i := range arr {
 		start := offset*9 + i*3
 		copy(arr[i][:], inslice[start:start+3])
 	}
@@ -334,7 +342,7 @@ func to3by3arr(inslice []float64, offset int) [3][3]float64 {
 func to6by6arr(inslice []float64) [6][6]float64 {
 	//returns a 6 x 6 array extracted from a 1-d slice of len 36
 	var arr [6][6]float64
-	for i := 0; i < 6; i++ {
+	for i := range arr {
 		copy(arr[i][:], inslice[i*6:i*6+6])
 	}
 	return arr
