@@ -12,11 +12,13 @@ import (
 var outputDirectory *string
 var stdout *bool
 
-type getter func(filename string) platform.Records
+type getter func(filename string) platform.L1aWrite
 
 func processFiles(
 	recordsGetter getter,
-	inputFiles []string, stdout bool, outputDirectory string) error {
+	inputFiles []string,
+	stdout bool,
+	outputDirectory string) error {
 	for _, inputFile := range inputFiles {
 		records := recordsGetter(inputFile)
 		if stdout {

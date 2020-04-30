@@ -1,31 +1,31 @@
 package main
 
 import (
-	"io/ioutil"
-	"log"
-	"os"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/innosat-mats/level1a-platform/internal/platform"
 )
 
-func recordsGetter(fname string) platform.Records {
-	currentRecords := platform.CurrentRecord{
-		Time: time.Now(),
-		Mode: 0,
+type fakeRecord struct {
+	Time time.Time
+}
+
+//Write fake records to file
+func (r fakeRecord) Write(outputfile string) error {
+	if outputfile == "/fail/test.json" {
+		return errors.New("fail")
 	}
-	return platform.Records{
-		CurrentRecords: []platform.CurrentRecord{currentRecords},
-	}
+	return nil
+}
+
+func recordsGetter(fname string) platform.L1aWrite {
+	record := fakeRecord{Time: time.Now()}
+	return record
 }
 
 func Test_processFiles(t *testing.T) {
-	dir, err := ioutil.TempDir("/tmp", "mats-testing")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer os.RemoveAll(dir)
 	type args struct {
 		recordsGetter   getter
 		inputFiles      []string
@@ -39,13 +39,13 @@ func Test_processFiles(t *testing.T) {
 	}{
 		{
 			"test stdout true does not write to disk",
-			args{recordsGetter, []string{"test.h5"}, true, dir}, false},
+			args{recordsGetter, []string{"test.h5"}, true, "/fail/"}, false},
 		{
 			"test write to disk fail returns error",
-			args{recordsGetter, []string{"test.h5"}, false, "non-existing-dir"}, true},
+			args{recordsGetter, []string{"test.h5"}, false, "/fail/"}, true},
 		{
 			"test write to disk ok",
-			args{recordsGetter, []string{"test.h5"}, true, dir}, false},
+			args{recordsGetter, []string{"test.h5"}, true, "/ok/"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

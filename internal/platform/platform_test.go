@@ -457,30 +457,6 @@ func Test_to6by6arr(t *testing.T) {
 	}
 }
 
-func TestGetRecords(t *testing.T) {
-	type args struct {
-		fname string
-	}
-	tests := []struct {
-		name string
-		args args
-		want PowerRecord
-	}{
-		{
-			"0",
-			args{testfile},
-			PowerRecord{toDateTime(1.2767113859339905e+09), 32.867725, 0, 36.02206, 0},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := GetRecords(tt.args.fname); !reflect.DeepEqual(got.PowerRecords[0], tt.want) {
-				t.Errorf("GetRecords() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestGetFilepath(t *testing.T) {
 	type args struct {
 		inputFile       string
@@ -577,6 +553,60 @@ func TestRecords_Write(t *testing.T) {
 				t.Errorf("unmarshaled gnss records not consistent to input records")
 			}
 
+		})
+	}
+}
+
+func TestRecords_WriteFail(t *testing.T) {
+	type fields struct {
+		PowerRecords []PowerRecord
+	}
+	type args struct {
+		outputfile string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			"test fails and returns error",
+			fields{
+				[]PowerRecord{PowerRecord{Time: toDateTime(0)}},
+			},
+			args{"/non/ok/directory/for/file.json"},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := Records{
+				PowerRecords: tt.fields.PowerRecords,
+			}
+			if err := r.Write(tt.args.outputfile); (err != nil) != tt.wantErr {
+				t.Errorf("Records.Write() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestGetRecords(t *testing.T) {
+	type args struct {
+		fname string
+	}
+	tests := []struct {
+		name string
+		args args
+		want L1aWrite
+	}{
+		{"Test underlying output struct is Records", args{testfile}, Records{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetRecords(tt.args.fname); !reflect.DeepEqual(reflect.TypeOf(got), reflect.TypeOf(tt.want)) {
+				t.Errorf("GetRecords() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

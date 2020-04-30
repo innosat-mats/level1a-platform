@@ -70,6 +70,11 @@ type GnssRecord struct {
 	StateTime       float64 `json:"acoOnGnssStateTime"`
 }
 
+//L1aWrite interface
+type L1aWrite interface {
+	Write(filename string) error
+}
+
 // Records collection of records
 type Records struct {
 	PowerRecords       []PowerRecord       `json:"HK_ecPowOps_1"`
@@ -116,13 +121,13 @@ func getDatasetFloat64(
 	filename string, groupname string, datasetname string) []float64 {
 
 	dataset := getDataset(filename, groupname, datasetname)
+	defer dataset.Close()
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]float64, npoints)
 	err := dataset.Read(&data)
 	if err != nil {
 		log.Fatalln(err, filename, groupname, datasetname, "data")
 	}
-	dataset.Close()
 	return data
 }
 
@@ -130,13 +135,13 @@ func getDatasetFloat32(
 	filename string, groupname string, datasetname string) []float32 {
 
 	dataset := getDataset(filename, groupname, datasetname)
+	defer dataset.Close()
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]float32, npoints)
 	err := dataset.Read(&data)
 	if err != nil {
 		log.Fatalln(err, filename, groupname, datasetname, "data")
 	}
-	dataset.Close()
 	return data
 }
 
@@ -144,13 +149,13 @@ func getDatasetUint8(
 	filename string, groupname string, datasetname string) []uint8 {
 
 	dataset := getDataset(filename, groupname, datasetname)
+	defer dataset.Close()
 	npoints := dataset.Space().SimpleExtentNPoints()
 	data := make([]uint8, npoints)
 	err := dataset.Read(&data)
 	if err != nil {
 		log.Fatalln(err, filename, groupname, datasetname, "data")
 	}
-	dataset.Close()
 	return data
 }
 
@@ -353,7 +358,7 @@ func GetFilepath(inputFile string, outputDirectory string) string {
 }
 
 //GetRecords from Level1a hdf file
-func GetRecords(fname string) Records {
+func GetRecords(fname string) L1aWrite {
 	powerRecords := getPowerRecords(fname)
 	currentRecords := getCurrentRecords(fname)
 	temperatureRecords := getTemperatureRecords(fname)
@@ -374,6 +379,7 @@ func GetRecords(fname string) Records {
 
 func getRecordsFromJSONFile(filename string) Records {
 	jsonFile, err := os.Open(filename)
+	defer jsonFile.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
