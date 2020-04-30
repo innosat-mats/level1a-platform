@@ -80,6 +80,19 @@ type Records struct {
 	GnssRecords        []GnssRecord        `json:"TM_acGnssOps"`
 }
 
+//Write records to file
+func (r Records) Write(outputfile string) error {
+	outdata, err := json.MarshalIndent(r, "", "    ")
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(outputfile, outdata, 0644)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 func getDataset(
 	filename string, groupname string, datasetname string) *hdf5.Dataset {
 
@@ -339,10 +352,7 @@ func GetFilepath(inputFile string, outputDirectory string) string {
 	return outputFile
 }
 
-//RecordsGetter for testing
-type RecordsGetter func(fname string) Records
-
-//GetRecords from Level1a file
+//GetRecords from Level1a hdf file
 func GetRecords(fname string) Records {
 	powerRecords := getPowerRecords(fname)
 	currentRecords := getCurrentRecords(fname)
@@ -362,23 +372,7 @@ func GetRecords(fname string) Records {
 	return records
 }
 
-//RecordsWriter for testing
-type RecordsWriter func(records Records, outputfile string) error
-
-//WriteRecords write records to json file
-func WriteRecords(records Records, outputfile string) error {
-	outdata, err := json.MarshalIndent(records, "", "    ")
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(outputfile, outdata, 0644)
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-func unmarshalRecords(filename string) Records {
+func getRecordsFromJSONFile(filename string) Records {
 	jsonFile, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)

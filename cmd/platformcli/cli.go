@@ -12,9 +12,10 @@ import (
 var outputDirectory *string
 var stdout *bool
 
+type getter func(filename string) platform.Records
+
 func processFiles(
-	recordsGetter platform.RecordsGetter,
-	recordsWriter platform.RecordsWriter,
+	recordsGetter getter,
 	inputFiles []string, stdout bool, outputDirectory string) error {
 	for _, inputFile := range inputFiles {
 		records := recordsGetter(inputFile)
@@ -23,7 +24,7 @@ func processFiles(
 		} else {
 			outputFile := platform.GetFilepath(
 				inputFile, outputDirectory)
-			err := recordsWriter(records, outputFile)
+			err := records.Write(outputFile)
 			if err != nil {
 				return err
 			}
@@ -62,8 +63,8 @@ func main() {
 	}
 
 	err := processFiles(
-		platform.GetRecords, platform.WriteRecords,
-		inputFiles, *stdout, *outputDirectory)
+		platform.GetRecords, inputFiles, *stdout,
+		*outputDirectory)
 	if err != nil {
 		log.Fatal(err)
 	}

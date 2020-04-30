@@ -3,6 +3,7 @@ package platform
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"reflect"
 	"testing"
@@ -504,47 +505,78 @@ func TestGetFilepath(t *testing.T) {
 	}
 }
 
-func dummyRecord() Records {
-	currentRecord := CurrentRecord{
-		Time: toDateTime(0),
-		Mode: 2,
-	}
-	return Records{
-		CurrentRecords: []CurrentRecord{currentRecord},
-	}
-}
-
-func outputfilepath() string {
+func TestRecords_Write(t *testing.T) {
 	dir, err := ioutil.TempDir("/tmp", "mats-testing")
 	if err != nil {
 		log.Fatal(err)
 	}
 	outputFile := path.Join(dir, "test.json")
-	return outputFile
-}
-
-func TestWriteRecords(t *testing.T) {
+	defer os.RemoveAll(dir)
+	type fields struct {
+		PowerRecords       []PowerRecord
+		CurrentRecords     []CurrentRecord
+		TemperatureRecords []TemperatureRecord
+		AttitudeRecords    []AttitudeRecord
+		OrbitRecords       []OrbitRecord
+		GnssRecords        []GnssRecord
+	}
 	type args struct {
-		records    Records
 		outputfile string
 	}
 	tests := []struct {
 		name    string
+		fields  fields
 		args    args
 		wantErr bool
 	}{
-		{"0", args{dummyRecord(), outputfilepath()}, false},
+		{
+			"0",
+			fields{
+				[]PowerRecord{PowerRecord{Time: toDateTime(0)}},
+				[]CurrentRecord{CurrentRecord{Time: toDateTime(1)}},
+				[]TemperatureRecord{TemperatureRecord{Time: toDateTime(2)}},
+				[]AttitudeRecord{AttitudeRecord{Time: toDateTime(3)}},
+				[]OrbitRecord{OrbitRecord{Time: toDateTime(4)}},
+				[]GnssRecord{GnssRecord{Time: toDateTime(5)}},
+			},
+			args{outputFile},
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := WriteRecords(tt.args.records, tt.args.outputfile); (err != nil) != tt.wantErr {
-				t.Errorf("WriteRecords() error = %v, wantErr %v", err, tt.wantErr)
+			r := Records{
+				PowerRecords:       tt.fields.PowerRecords,
+				CurrentRecords:     tt.fields.CurrentRecords,
+				TemperatureRecords: tt.fields.TemperatureRecords,
+				AttitudeRecords:    tt.fields.AttitudeRecords,
+				OrbitRecords:       tt.fields.OrbitRecords,
+				GnssRecords:        tt.fields.GnssRecords,
 			}
-			//read generated file and check that is ok
-			records := unmarshalRecords(tt.args.outputfile)
-			if records.CurrentRecords[0].Time != toDateTime(0) {
-				t.Errorf("unmarslaed records not consistent to input records")
+			if err := r.Write(tt.args.outputfile); (err != nil) != tt.wantErr {
+				t.Errorf("Records.Write() error = %v, wantErr %v", err, tt.wantErr)
 			}
+			//read generated file and check that time is ok
+			records := getRecordsFromJSONFile(tt.args.outputfile)
+			if records.PowerRecords[0].Time != toDateTime(0) {
+				t.Errorf("unmarshaled power records not consistent to input records")
+			}
+			if records.CurrentRecords[0].Time != toDateTime(1) {
+				t.Errorf("unmarshaled current records not consistent to input records")
+			}
+			if records.TemperatureRecords[0].Time != toDateTime(2) {
+				t.Errorf("unmarshaled temperture records not consistent to input records")
+			}
+			if records.AttitudeRecords[0].Time != toDateTime(3) {
+				t.Errorf("unmarshaled attitude records not consistent to input records")
+			}
+			if records.OrbitRecords[0].Time != toDateTime(4) {
+				t.Errorf("unmarshaled orbit records not consistent to input records")
+			}
+			if records.GnssRecords[0].Time != toDateTime(5) {
+				t.Errorf("unmarshaled gnss records not consistent to input records")
+			}
+
 		})
 	}
 }

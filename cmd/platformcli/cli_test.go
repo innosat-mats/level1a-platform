@@ -1,7 +1,9 @@
 package main
 
 import (
-	"errors"
+	"io/ioutil"
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -18,41 +20,36 @@ func recordsGetter(fname string) platform.Records {
 	}
 }
 
-func recordsWriterOk(records platform.Records, outputfile string) error {
-	return nil
-}
-
-func recordsWriterError(records platform.Records, outputfile string) error {
-	return errors.New("fail")
-}
-
 func Test_processFiles(t *testing.T) {
+	dir, err := ioutil.TempDir("/tmp", "mats-testing")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
 	type args struct {
-		recordsGetter   platform.RecordsGetter
-		recordsWriter   platform.RecordsWriter
+		recordsGetter   getter
 		inputFiles      []string
 		stdout          bool
 		outputDirectory string
 	}
-
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
 		{
-			"test_stdout_true_does_not_write_to_disk",
-			args{recordsGetter, recordsWriterError, []string{"test.h5"}, true, "/tmp"}, false},
+			"test stdout true does not write to disk",
+			args{recordsGetter, []string{"test.h5"}, true, dir}, false},
 		{
-			"test_write_to_disk_fail_returns_error",
-			args{recordsGetter, recordsWriterError, []string{"test.h5"}, false, "/tmp"}, true},
+			"test write to disk fail returns error",
+			args{recordsGetter, []string{"test.h5"}, false, "non-existing-dir"}, true},
 		{
-			"test_write_to_disk_ok",
-			args{recordsGetter, recordsWriterOk, []string{"test.h5"}, true, "/tmp"}, false},
+			"test write to disk ok",
+			args{recordsGetter, []string{"test.h5"}, true, dir}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := processFiles(tt.args.recordsGetter, tt.args.recordsWriter, tt.args.inputFiles, tt.args.stdout, tt.args.outputDirectory); (err != nil) != tt.wantErr {
+			if err := processFiles(tt.args.recordsGetter, tt.args.inputFiles, tt.args.stdout, tt.args.outputDirectory); (err != nil) != tt.wantErr {
 				t.Errorf("processFiles() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
