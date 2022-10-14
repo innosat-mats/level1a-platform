@@ -13,7 +13,9 @@ import (
 	"gonum.org/v1/hdf5"
 )
 
-var dateEpochGPS = time.Date(1980, 1, 6, 0, 0, 0, 0, time.UTC)
+const epochGPSCorrection = -18 // Seconds
+
+var dateEpochGPS = time.Date(1980, 1, 6, 0, 0, epochGPSCorrection, 0, time.UTC)
 
 // PowerRecord for variables in group: "HK_ecPowOps_1"
 type PowerRecord struct {

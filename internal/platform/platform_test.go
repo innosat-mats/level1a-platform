@@ -23,8 +23,8 @@ func Test_toDateTime(t *testing.T) {
 		args args
 		want time.Time
 	}{
-		{"0", args{0}, time.Date(1980, 1, 6, 0, 0, 0, 0, time.UTC)},
-		{"1", args{3601.123}, time.Date(1980, 1, 6, 1, 0, 1, 123000000, time.UTC)},
+		{"0", args{0}, time.Date(1980, 1, 5, 23, 59, 42, 0, time.UTC)},
+		{"1", args{3601.123}, time.Date(1980, 1, 6, 0, 59, 43, 123000000, time.UTC)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
