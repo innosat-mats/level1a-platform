@@ -11,65 +11,139 @@ import (
 	"time"
 
 	"gonum.org/v1/hdf5"
+
+	goparquet "github.com/fraugster/parquet-go"
+	"github.com/fraugster/parquet-go/floor"
+	"github.com/fraugster/parquet-go/parquet"
+	"github.com/fraugster/parquet-go/parquetschema"
 )
 
 const epochGPSCorrection = -18 // Seconds
 
 var dateEpochGPS = time.Date(1980, 1, 6, 0, 0, epochGPSCorrection, 0, time.UTC)
 
+var schema = `message schema {
+	required int64 time (TIMESTAMP(MILLIS, true));
+	optional float eciMpduMainBusVoltage;
+	optional float ecoUnitPower_heatStr;
+	optional float ecoUnitPower_plMain;
+	optional float ecoUnitPower_plSafe;
+	optional int32 scoCurrentScMode (UINT_8);
+	optional float tcoTemp_pl;
+	optional float tcoTemp_sa1;
+	optional float tcoTemp_sa2;
+	optional float tcoTemp_sc10_pzPanel;
+	optional float tcoTemp_str;
+	optional group afsAttitudeState (LIST) {
+		repeated group list {
+			required double element;
+		}
+	}
+	optional group afsAttitudeUncertainty (LIST) {
+		repeated group list {
+			required group element (LIST) {
+				repeated group list {
+					required double element;
+				}
+			}
+		}
+	}
+	optional group afsRateUncertainty (LIST) {
+		repeated group list {
+			required group element (LIST) {
+				repeated group list {
+					required double element;
+				}
+			}
+		}
+	}
+	optional group afsSpacecraftRate (LIST) {
+		repeated group list {
+			required double element;
+		}
+	}
+	optional group afsTangentPoint (LIST) {
+		repeated group list {
+			required double element;
+		}
+	}
+	optional group acsGnssStateJ2000 (LIST) {
+		repeated group list {
+			required double element;
+		}
+	}
+	optional group acsNavigationUncertainty (LIST) {
+		repeated group list {
+			required group element (LIST) {
+				repeated group list {
+					required double element;
+				}
+			}
+		}
+	}
+	optional int32 acoOnGnssPropagationTime (UINT_8);
+	optional float acoOnGnssStateEcef_vx;
+	optional float acoOnGnssStateEcef_vy;
+	optional float acoOnGnssStateEcef_vz;
+	optional float acoOnGnssStateEcef_x;
+	optional float acoOnGnssStateEcef_y;
+	optional float acoOnGnssStateEcef_z;
+	optional double acoOnGnssStateTime;
+}`
+
 // PowerRecord for variables in group: "HK_ecPowOps_1"
 type PowerRecord struct {
-	Time           time.Time
-	MainBusVoltage float32 `json:"eciMpduMainBusVoltage"`
-	PowerheatStr   float32 `json:"ecoUnitPower_heatStr"`
-	PowerplMain    float32 `json:"ecoUnitPower_plMain"`
-	PowerplSafe    float32 `json:"ecoUnitPower_plSafe"`
+	Time           time.Time `parquet:"time"`
+	MainBusVoltage float32 `parquet:"eciMpduMainBusVoltage"`
+	PowerheatStr   float32 `parquet:"ecoUnitPower_heatStr"`
+	PowerplMain    float32 `parquet:"ecoUnitPower_plMain"`
+	PowerplSafe    float32 `parquet:"ecoUnitPower_plSafe"`
 }
 
 // CurrentRecord for variables in group: "HK_scSysOps_1"
 type CurrentRecord struct {
-	Time time.Time
-	Mode uint8 `json:"scoCurrentScMode"`
+	Time time.Time `parquet:"time"`
+	Mode uint8 `parquet:"scoCurrentScMode"`
 }
 
 // TemperatureRecord for variables in group: "HK_tcThermEssential"
 type TemperatureRecord struct {
-	Time            time.Time
-	Temppl          float32 `json:"tcoTemp_pl"`
-	Tempsa1         float32 `json:"tcoTemp_sa1"`
-	Tempsa2         float32 `json:"tcoTemp_sa2"`
-	Tempsc10pzPanel float32 `json:"tcoTemp_sc10_pzPanel"`
-	Tempstr         float32 `json:"tcoTemp_str"`
+	Time            time.Time `parquet:"time"`
+	Temppl          float32 `parquet:"tcoTemp_pl"`
+	Tempsa1         float32 `parquet:"tcoTemp_sa1"`
+	Tempsa2         float32 `parquet:"tcoTemp_sa2"`
+	Tempsc10pzPanel float32 `parquet:"tcoTemp_sc10_pzPanel"`
+	Tempstr         float32 `parquet:"tcoTemp_str"`
 }
 
 // AttitudeRecord for variables in group: "PreciseAttitudeEstimation"
 type AttitudeRecord struct {
-	Time                time.Time
-	AttitudeState       [4]float64    `json:"afsAttitudeState"`
-	AttitudeUncertainty [3][3]float64 `json:"afsAttitudeUncertainty"`
-	RateUncertainty     [3][3]float64 `json:"afsRateUncertainty"`
-	SpacecraftRate      [3]float64    `json:"afsSpacecraftRate"`
-	TangentPoint        [3]float64    `json:"afsTangentPoint"`
+	Time                time.Time `parquet:"time"`
+	AttitudeState       [4]float64    `parquet:"afsAttitudeState"`
+	AttitudeUncertainty [3][3]float64 `parquet:"afsAttitudeUncertainty"`
+	RateUncertainty     [3][3]float64 `parquet:"afsRateUncertainty"`
+	SpacecraftRate      [3]float64    `parquet:"afsSpacecraftRate"`
+	TangentPoint        [3]float64    `parquet:"afsTangentPoint"`
 }
 
 // OrbitRecord for variables in group: "PreciseOrbitEstimation"
 type OrbitRecord struct {
-	Time           time.Time
-	GnssStateJ2000 [6]float64    `json:"acsGnssStateJ2000"`
-	Uncertainty    [6][6]float64 `json:"acsNavigationUncertainty"`
+	Time           time.Time `parquet:"time"`
+	GnssStateJ2000 [6]float64    `parquet:"acsGnssStateJ2000"`
+	Uncertainty    [6][6]float64 `parquet:"acsNavigationUncertainty"`
 }
 
 // GnssRecord for variables in group: "TM_acGnssOps"
 type GnssRecord struct {
-	Time            time.Time
-	PropagationTime uint8   `json:"acoOnGnssPropagationTime"`
-	StateEcefVX     float32 `json:"acoOnGnssStateEcef_vx"`
-	StateEcefVY     float32 `json:"acoOnGnssStateEcef_vy"`
-	StateEcefVZ     float32 `json:"acoOnGnssStateEcef_vz"`
-	StateEcefX      float32 `json:"acoOnGnssStateEcef_x"`
-	StateEcefY      float32 `json:"acoOnGnssStateEcef_y"`
-	StateEcefZ      float32 `json:"acoOnGnssStateEcef_z"`
-	StateTime       float64 `json:"acoOnGnssStateTime"`
+	Time            time.Time `parquet:"time"`
+	PropagationTime uint8   `parquet:"acoOnGnssPropagationTime"`
+	StateEcefVX     float32 `parquet:"acoOnGnssStateEcef_vx"`
+	StateEcefVY     float32 `parquet:"acoOnGnssStateEcef_vy"`
+	StateEcefVZ     float32 `parquet:"acoOnGnssStateEcef_vz"`
+	StateEcefX      float32 `parquet:"acoOnGnssStateEcef_x"`
+	StateEcefY      float32 `parquet:"acoOnGnssStateEcef_y"`
+	StateEcefZ      float32 `parquet:"acoOnGnssStateEcef_z"`
+	StateTime       float64 `parquet:"acoOnGnssStateTime"`
 }
 
 //L1aWrite interface
@@ -79,24 +153,65 @@ type L1aWrite interface {
 
 // Records collection of records
 type Records struct {
-	PowerRecords       []PowerRecord       `json:"HK_ecPowOps_1"`
-	CurrentRecords     []CurrentRecord     `json:"HK_scSysOps_1"`
-	TemperatureRecords []TemperatureRecord `json:"HK_tcThermEssential"`
-	AttitudeRecords    []AttitudeRecord    `json:"PreciseAttitudeEstimation"`
-	OrbitRecords       []OrbitRecord       `json:"PreciseOrbitEstimation"`
-	GnssRecords        []GnssRecord        `json:"TM_acGnssOps"`
+	PowerRecords       []PowerRecord       `parquet:"HK_ecPowOps_1"`
+	CurrentRecords     []CurrentRecord     `parquet:"HK_scSysOps_1"`
+	TemperatureRecords []TemperatureRecord `parquet:"HK_tcThermEssential"`
+	AttitudeRecords    []AttitudeRecord    `parquet:"PreciseAttitudeEstimation"`
+	OrbitRecords       []OrbitRecord       `parquet:"PreciseOrbitEstimation"`
+	GnssRecords        []GnssRecord        `parquet:"TM_acGnssOps"`
 }
 
 //Write records to file
 func (r Records) Write(outputfile string) error {
-	outdata, err := json.MarshalIndent(r, "", "    ")
+	schemaDef, err := parquetschema.ParseSchemaDefinition(schema)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(outputfile, outdata, 0644)
+
+	fw, err := floor.NewFileWriter(
+		outputfile,
+		goparquet.WithSchemaDefinition(schemaDef),
+		goparquet.WithCompressionCodec(parquet.CompressionCodec_SNAPPY),
+	)
 	if err != nil {
 		return err
 	}
+
+	for _, rec := range r.PowerRecords {
+		if err := fw.Write(rec); err != nil {
+			return err
+		}
+	}
+	for _, rec := range r.CurrentRecords {
+		if err := fw.Write(rec); err != nil {
+			return err
+		}
+	}
+	for _, rec := range r.TemperatureRecords {
+		if err := fw.Write(rec); err != nil {
+			return err
+		}
+	}
+	for _, rec := range r.AttitudeRecords {
+		if err := fw.Write(rec); err != nil {
+			return err
+		}
+	}
+	for _, rec := range r.OrbitRecords {
+		if err := fw.Write(rec); err != nil {
+			return err
+		}
+	}
+	for _, rec := range r.GnssRecords {
+		if err := fw.Write(rec); err != nil {
+			return err
+		}
+	}
+
+	if err := fw.Close(); err != nil {
+		return err
+	}
+
 	return err
 }
 
@@ -362,7 +477,7 @@ func GetFilepath(inputFile string, outputDirectory string) string {
 		outputDirectory,
 		strings.TrimSuffix(
 			path.Base(inputFile), filepath.Ext(inputFile),
-		)+".json",
+		)+".parquet",
 	)
 	return outputFile
 }
