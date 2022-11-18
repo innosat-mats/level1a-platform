@@ -43,9 +43,9 @@ class L1APlatformStack(Stack):
         platform_lambda = PythonFunction(
             self,
             "L1APlatformLambda",
-            entry="./l1a_platform/handlers",
+            entry="l1a_platform",
             handler="lambda_handler",
-            index="l1a_platform.py",
+            index="handlers/l1a_platform.py",
             timeout=lambda_timeout,
             architecture=Architecture.X86_64,
             runtime=Runtime.PYTHON_3_9,

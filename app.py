@@ -2,7 +2,7 @@
 
 from aws_cdk import App
 
-from l1a_platform.l1a_platform_stack import L1APlatformStack
+from stacks.l1a_platform_stack import L1APlatformStack
 
 app = App()
 
