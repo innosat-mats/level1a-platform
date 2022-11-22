@@ -6,6 +6,7 @@ import numpy as np
 
 TIME_KEY = "time"
 GPS_START = np.datetime64("1980-01-06")
+GPS_OFFSET = -np.timedelta64(18, 's')
 
 
 class BaseRecord(Enum):
@@ -117,7 +118,7 @@ class HiRateAttitudeRecord(BaseRecord):
 
 
 def to_utc(gps_datetimes: np.ndarray) -> np.ndarray:
-    return gps_datetimes - np.timedelta64(18, 's')
+    return gps_datetimes + GPS_OFFSET
 
 
 def to_datetime(elapsed_seconds: np.ndarray) -> np.ndarray:
