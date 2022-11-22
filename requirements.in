@@ -1,0 +1,8 @@
+aws-cdk-lib
+aws-cdk.aws-lambda-python-alpha
+boto3
+constructs
+h5py
+pyarrow
+types-boto3
+types-botocore
