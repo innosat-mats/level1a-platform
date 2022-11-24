@@ -98,7 +98,7 @@ def test_get_filename(getter, extension):
     files = [Path("example.h5"), Path("anotherone.h5")]
 
     fname = get_filename(files, getter)
-    match = re.search(r'([0-9]+_)(.*)(_{i}.parquet)', fname)
+    match = re.search(r'(.*)(_[0-9]+)(_{i}.parquet)', fname)
     assert match is not None
-    assert match[2] == extension
+    assert match[1] == extension
     assert match[3] == "_{i}.parquet"

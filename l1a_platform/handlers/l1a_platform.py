@@ -29,7 +29,7 @@ Event = Dict[str, Any]
 Context = Any
 Getter = Callable[[h5py.File], Dict[str, np.ndarray]]
 
-file_suffix: Dict[Callable, str] = {
+file_prefix: Dict[Callable, str] = {
     get_power_records: "HK_ecPowOps_1",
     get_current_records: "scoCurrentScMode",
     get_temperature_records: "HK_tcThermEssential",
@@ -96,7 +96,7 @@ def read_to_table(getter: Getter, h5_file: h5py.File) -> Optional[pa.Table]:
 
 
 def get_filename(files: List[Path], getter: Getter) -> str:
-    return f"{hash(tuple(files))}_{file_suffix[getter]}" + "_{i}.parquet"
+    return f"{file_prefix[getter]}_{abs(hash(tuple(files)))}" + "_{i}.parquet"
 
 
 def lambda_handler(event: Event, context: Context):
