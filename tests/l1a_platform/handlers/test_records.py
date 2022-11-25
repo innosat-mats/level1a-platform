@@ -44,7 +44,6 @@ def test_get_attitude_records(h5_file):
     assert np.array(data["afsAttitudeUncertainty"]).shape == (63, 3, 3)
     assert np.array(data["afsRateUncertainty"]).shape == (63, 3, 3)
     assert np.array(data["afsSpacecraftRate"]).shape == (63, 3)
-    assert np.array(data["afsTangentPoint"]).shape == (63, 3)
 
 
 def test_get_orbit_records(h5_file):
@@ -52,6 +51,7 @@ def test_get_orbit_records(h5_file):
     assert data["time"].shape == (63,)
     assert np.array(data["acsGnssStateJ2000"]).shape == (63, 6)
     assert np.array(data["acsNavigationUncertainty"]).shape == (63, 6, 6)
+    assert np.array(data["afsTangentPoint"]).shape == (63, 3)
 
 
 def test_get_gnss_records(h5_file):
