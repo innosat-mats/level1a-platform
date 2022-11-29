@@ -166,9 +166,6 @@ def get_attitude_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
         AttitudeRecord.spacecraft_rate.out_name: np.array(
             h5_file[AttitudeRecord.spacecraft_rate.path]
         ).T.tolist(),
-        AttitudeRecord.tangent_point.out_name: np.array(
-            h5_file[AttitudeRecord.tangent_point.path]
-        ).T.tolist(),
     }
 
 
@@ -181,7 +178,12 @@ def get_orbit_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
         OrbitRecord.gnss_state.out_name: gnss.tolist(),
         OrbitRecord.navigation_uncertainty.out_name: (
             uncertainty[np.newaxis, :, :].repeat(len(time), axis=0).tolist()
-        )
+        ),
+        #  AttitudeRecord.tangent_point is added here due to having its time
+        #  axis shared with orbit records rather than attitude records.
+        AttitudeRecord.tangent_point.out_name: np.array(
+            h5_file[AttitudeRecord.tangent_point.path]
+        ).T.tolist(),
     }
 
 
