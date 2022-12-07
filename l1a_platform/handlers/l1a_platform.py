@@ -40,6 +40,10 @@ file_prefix: Dict[Callable, str] = {
 }
 
 
+class NothingToDo(Exception):
+    pass
+
+
 def get_or_raise(variable_name: str) -> str:
     if (var := os.environ.get(variable_name)) is None:
         raise EnvironmentError(
@@ -103,6 +107,8 @@ def lambda_handler(event: Event, context: Context):
     out_bucket = get_or_raise("OUTPUT_BUCKET")
     region = os.environ.get('AWS_REGION', "eu-north-1")
     objects, in_bucket = parse_event_message(event)
+    if objects == []:
+        raise NothingToDo
     tempdir = TemporaryDirectory()
 
     s3_client = boto3.client('s3')
