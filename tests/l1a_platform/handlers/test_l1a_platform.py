@@ -64,7 +64,7 @@ def test_download_file():
     file_name = "file1"
     output_dir = TemporaryDirectory()
     download_file(mocked_client, bucket_name, file_name, output_dir)
-    mocked_client.download_fileobj.assert_called_once_with(
+    mocked_client.download_file.assert_called_once_with(
         'bucket',
         'file1',
         ANY,
