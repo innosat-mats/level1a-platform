@@ -75,7 +75,7 @@ def download_file(
     output_dir: TemporaryDirectory,
 ) -> Path:
     file_path = Path(f"{output_dir.name}/{file_name}")
-    s3_client.download_file(bucket_name, file_name, file_path)
+    s3_client.download_file(bucket_name, file_name, str(file_path))
     return file_path
 
 
