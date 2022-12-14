@@ -10,7 +10,7 @@ L1APlatformStack(
     app,
     "L1APlatformToParquetStack",
     input_bucket_name="ops-platform-level1a-source",
-    output_bucket_name="ops-platform-level1a-v0.1",
+    output_bucket_name="ops-platform-level1a-v0.2",
     queue_arn_export_name="L0PlatformFetcherStackOutputQueue",
 )
 
