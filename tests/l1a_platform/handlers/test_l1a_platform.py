@@ -1,13 +1,11 @@
 import os
-import re
-from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import ANY, Mock, call, patch
+from unittest.mock import ANY, Mock, patch
 
 import numpy as np
 import pytest  # type: ignore
 from l1a_platform.handlers.l1a_platform import (
-    download_files,
+    download_file,
     get_filename,
     get_or_raise,
     get_partitioned_dates,
@@ -42,11 +40,11 @@ def test_parse_event_message():
     event = {
         "Records": [
             {
-                "body": '{"bucket": "some-bucket", "objects": ["path/to/file.h5"]}'  # noqa: E501
+                "body": '{"bucket": "some-bucket", "object": "path/to/file.h5"}'  # noqa: E501
             }
         ]
     }
-    assert parse_event_message(event) == (["path/to/file.h5"], "some-bucket")
+    assert parse_event_message(event) == ("path/to/file.h5", "some-bucket")
 
 
 def test_get_partitioned_dates():
@@ -60,16 +58,17 @@ def test_get_partitioned_dates():
     np.testing.assert_array_equal(partitioned["day"], [1, 2])
 
 
-def test_download_files():
+def test_download_file():
     mocked_client = Mock()
     bucket_name = "bucket"
-    file_names = ["file1", "file2"]
+    file_name = "file1"
     output_dir = TemporaryDirectory()
-    download_files(mocked_client, bucket_name, file_names, output_dir)
-    mocked_client.download_fileobj.assert_has_calls([
-        call('bucket', 'file1', ANY),
-        call('bucket', 'file2', ANY),
-    ])
+    download_file(mocked_client, bucket_name, file_name, output_dir)
+    mocked_client.download_fileobj.assert_called_once_with(
+        'bucket',
+        'file1',
+        ANY,
+    )
 
 
 @pytest.mark.parametrize("getter", (
@@ -85,20 +84,7 @@ def test_read_to_table(h5_file, getter):
     assert read_to_table(getter, h5_file) is not None
 
 
-@pytest.mark.parametrize("getter,extension", (
-    (get_power_records, "HK_ecPowOps_1"),
-    (get_current_records, "scoCurrentScMode"),
-    (get_temperature_records, "HK_tcThermEssential"),
-    (get_attitude_records, "PreciseAttitudeEstimation"),
-    (get_orbit_records, "PreciseOrbitEstimation"),
-    (get_gnss_records, "TM_acGnssOps"),
-    (get_hirate_attitude_records, "TM_afAcsHiRateAttitudeData"),
-))
-def test_get_filename(getter, extension):
-    files = [Path("example.h5"), Path("anotherone.h5")]
-
-    fname = get_filename(files, getter)
-    match = re.search(r'(.*)(_[0-9]+)(_{i}.parquet)', fname)
-    assert match is not None
-    assert match[1] == extension
-    assert match[3] == "_{i}.parquet"
+def test_get_filename():
+    h5_filename = "MATS_Platform_OPS_LEVEL1A_20221116-120226_20221116-120325.h5"
+    parquet_filename = "MATS_Platform_OPS_LEVEL1A_20221116-120226_20221116-120325_{i}.parquet"  # noqa: E501
+    assert get_filename(h5_filename) == parquet_filename
