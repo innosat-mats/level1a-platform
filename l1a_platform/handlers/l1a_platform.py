@@ -15,12 +15,11 @@ import pyarrow.parquet as pq  # type: ignore
 
 from .records import (
     TIME_KEY,
-    get_attitude_records,
+    get_acs_fast_ops_records,
+    get_acs_slow_ops_records,
     get_current_records,
-    get_gnss_records,
-    get_hirate_attitude_records,
-    get_orbit_records,
     get_power_records,
+    get_reconstructed_records,
     get_temperature_records,
 )
 
@@ -33,10 +32,9 @@ folder_prefix: Dict[Callable, str] = {
     get_power_records: "HK_ecPowOps_1",
     get_current_records: "scoCurrentScMode",
     get_temperature_records: "HK_tcThermEssential",
-    get_attitude_records: "PreciseAttitudeEstimation",
-    get_orbit_records: "PreciseOrbitEstimation",
-    get_gnss_records: "TM_acGnssOps",
-    get_hirate_attitude_records: "TM_afAcsHiRateAttitudeData",
+    get_reconstructed_records: "ReconstructedData",
+    get_acs_slow_ops_records: "TM_acAcsSlowOps",
+    get_acs_fast_ops_records: "TM_afAcsFastOps",
 }
 
 
@@ -109,10 +107,9 @@ def lambda_handler(event: Event, context: Context):
         get_power_records,
         get_current_records,
         get_temperature_records,
-        get_attitude_records,
-        get_orbit_records,
-        get_gnss_records,
-        get_hirate_attitude_records,
+        get_reconstructed_records,
+        get_acs_slow_ops_records,
+        get_acs_fast_ops_records,
     ):
         pq.write_to_dataset(
             table=read_to_table(f, h5_file),
