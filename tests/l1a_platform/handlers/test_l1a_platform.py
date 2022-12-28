@@ -13,12 +13,11 @@ from l1a_platform.handlers.l1a_platform import (
     read_to_table,
 )
 from l1a_platform.handlers.records import (
-    get_attitude_records,
+    get_acs_fast_ops_records,
+    get_acs_slow_ops_records,
     get_current_records,
-    get_gnss_records,
-    get_hirate_attitude_records,
-    get_orbit_records,
     get_power_records,
+    get_reconstructed_records,
     get_temperature_records,
 )
 
@@ -75,10 +74,9 @@ def test_download_file():
     get_power_records,
     get_current_records,
     get_temperature_records,
-    get_attitude_records,
-    get_orbit_records,
-    get_gnss_records,
-    get_hirate_attitude_records,
+    get_reconstructed_records,
+    get_acs_slow_ops_records,
+    get_acs_fast_ops_records,
 ))
 def test_read_to_table(h5_file, getter):
     assert read_to_table(getter, h5_file) is not None

@@ -1,12 +1,11 @@
 
 import numpy as np
 from l1a_platform.handlers.records import (
-    get_attitude_records,
+    get_acs_fast_ops_records,
+    get_acs_slow_ops_records,
     get_current_records,
-    get_gnss_records,
-    get_hirate_attitude_records,
-    get_orbit_records,
     get_power_records,
+    get_reconstructed_records,
     get_temperature_records,
     to_datetime,
     to_utc,
@@ -15,72 +14,89 @@ from l1a_platform.handlers.records import (
 
 def test_get_power_records(h5_file):
     data = get_power_records(h5_file)
-    assert data["time"].shape == (6,)
-    assert data["eciMpduMainBusVoltage"].shape == (6,)
-    assert data["ecoUnitPower_heatStr"].shape == (6,)
-    assert data["ecoUnitPower_plMain"].shape == (6,)
-    assert data["ecoUnitPower_plSafe"].shape == (6,)
+    expect_shape = (569,)
+    assert data["time"].shape == expect_shape
+    assert data["eciMpduMainBusVoltage"].shape == expect_shape
+    assert data["ecoUnitPower_heatStr"].shape == expect_shape
+    assert data["ecoUnitPower_plMain"].shape == expect_shape
+    assert data["ecoUnitPower_plSafe"].shape == expect_shape
 
 
 def test_get_current_records(h5_file):
     data = get_current_records(h5_file)
-    assert data["time"].shape == (2,)
-    assert data["scoCurrentScMode"].shape == (2,)
+    expect_shape = (190,)
+    assert data["time"].shape == expect_shape
+    assert data["scoCurrentScMode"].shape == expect_shape
 
 
 def test_get_temperature_records(h5_file):
     data = get_temperature_records(h5_file)
-    assert data["time"].shape == (1,)
-    assert data["tcoTemp_pl"].shape == (1,)
-    assert data["tcoTemp_sa1_payloadIr2"].shape == (1,)
-    assert data["tcoTemp_sa2"].shape == (1,)
-    assert data["tcoTemp_str"].shape == (1,)
+    expect_shape = (146, )
+    assert data["time"].shape == expect_shape
+    assert data["tcoTemp_pl"].shape == expect_shape
+    assert data["tcoTemp_sa1_payloadIr2"].shape == expect_shape
+    assert data["tcoTemp_sa2"].shape == expect_shape
+    assert data["tcoTemp_str"].shape == expect_shape
 
 
-def test_get_attitude_records(h5_file):
-    data = get_attitude_records(h5_file)
-    assert data["time"].shape == (63,)
-    assert np.array(data["afsAttitudeState"]).shape == (63, 4)
-    assert np.array(data["afsAttitudeUncertainty"]).shape == (63, 3, 3)
-    assert np.array(data["afsRateUncertainty"]).shape == (63, 3, 3)
-    assert np.array(data["afsSpacecraftRate"]).shape == (63, 3)
+def test_get_reconstructed_records(h5_file):
+    data = get_reconstructed_records(h5_file)
+    expect_rows = 5668
+    assert data["time"].shape == (expect_rows,)
+    assert np.array(data["afsAttitudeState"]).shape == (expect_rows, 4)
+    assert np.array(data["afsGnssStateJ2000"]).shape == (expect_rows, 6)
+    assert np.array(data["afsTPLongLatGeod"]).shape == (expect_rows, 2)
+    assert np.array(data["afsTangentH_wgs84"]).shape == (expect_rows, 1)
+    assert np.array(data["afsTangentPointECI"]).shape == (expect_rows, 3)
 
 
-def test_get_orbit_records(h5_file):
-    data = get_orbit_records(h5_file)
-    assert data["time"].shape == (63,)
-    assert np.array(data["acsGnssStateJ2000"]).shape == (63, 6)
-    assert np.array(data["acsNavigationUncertainty"]).shape == (63, 6, 6)
-    assert np.array(data["afsTangentPoint"]).shape == (63, 3)
+def test_get_acs_slow_ops_records(h5_file):
+    data = get_acs_slow_ops_records(h5_file)
+    expect_shape = (5681,)
+    assert data["time"].shape == expect_shape
+    assert data["aciTcLimbPointingAltOffset_0"].shape == expect_shape
+    assert data["aciTcLimbPointingAltOffset_1"].shape == expect_shape
+    assert data["aciTcLimbPointingAltOffset_2"].shape == expect_shape
+    assert data["acoOnGnssPropagationTime"].shape == expect_shape
+    assert data["acoOnGnssStateEcef_vx"].shape == expect_shape
+    assert data["acoOnGnssStateEcef_vy"].shape == expect_shape
+    assert data["acoOnGnssStateEcef_vz"].shape == expect_shape
+    assert data["acoOnGnssStateEcef_x"].shape == expect_shape
+    assert data["acoOnGnssStateEcef_y"].shape == expect_shape
+    assert data["acoOnGnssStateEcef_z"].shape == expect_shape
+    assert data["acoOnGnssStateJ2000_vx"].shape == expect_shape
+    assert data["acoOnGnssStateJ2000_vy"].shape == expect_shape
+    assert data["acoOnGnssStateJ2000_vz"].shape == expect_shape
+    assert data["acoOnGnssStateJ2000_x"].shape == expect_shape
+    assert data["acoOnGnssStateJ2000_y"].shape == expect_shape
+    assert data["acoOnGnssStateJ2000_z"].shape == expect_shape
+    assert data["acoOnGnssStateTime"].shape == expect_shape
+    assert data["acoTleStateJ2000_vx"].shape == expect_shape
+    assert data["acoTleStateJ2000_vy"].shape == expect_shape
+    assert data["acoTleStateJ2000_vz"].shape == expect_shape
+    assert data["acoTleStateJ2000_x"].shape == expect_shape
+    assert data["acoTleStateJ2000_y"].shape == expect_shape
+    assert data["acoTleStateJ2000_z"].shape == expect_shape
+    assert data["acoTmArgGnssUsed"].shape == expect_shape
+    assert data["acoTmArgInstrPitchAngle"].shape == expect_shape
+    assert data["acoTmArgLpTp_x"].shape == expect_shape
+    assert data["acoTmArgLpTp_y"].shape == expect_shape
+    assert data["acoTmArgLpTp_z"].shape == expect_shape
+    assert data["acoTmArgYawCompAngle"].shape == expect_shape
 
 
-def test_get_gnss_records(h5_file):
-    data = get_gnss_records(h5_file)
-    assert data["time"].shape == (63,)
-    assert data["acoOnGnssPropagationTime"].shape == (63,)
-    assert data["acoOnGnssStateEcef_vx"].shape == (63,)
-    assert data["acoOnGnssStateEcef_vy"].shape == (63,)
-    assert data["acoOnGnssStateEcef_vz"].shape == (63,)
-    assert data["acoOnGnssStateEcef_x"].shape == (63,)
-    assert data["acoOnGnssStateEcef_y"].shape == (63,)
-    assert data["acoOnGnssStateEcef_z"].shape == (63,)
-    assert data["acoOnGnssStateTime"].shape == (63,)
-    assert data["acoOnGnssValid"].shape == (63,)
-
-
-def test_get_hirate_attitude_records(h5_file):
-    data = get_hirate_attitude_records(h5_file)
-    assert data["time"].shape == (157,)
-    assert data["afiStrMasterReturn"].shape == (157,)
-    assert data["afiStrResQuaternion_q0"].shape == (157,)
-    assert data["afiStrResQuaternion_q1"].shape == (157,)
-    assert data["afiStrResQuaternion_q2"].shape == (157,)
-    assert data["afiStrResQuaternion_q3"].shape == (157,)
-    assert data["afoRsaCumSumAngleScb_x"].shape == (157,)
-    assert data["afoRsaCumSumAngleScb_y"].shape == (157,)
-    assert data["afoRsaCumSumAngleScb_z"].shape == (157,)
-    assert data["afoRsaValidityCount"].shape == (157,)
-    assert data["afoTmMhObt"].shape == (157,)
+def test_get_acs_fast_ops_records(h5_file):
+    data = get_acs_fast_ops_records(h5_file)
+    expect_shape = (5682,)
+    assert data["time"].shape == expect_shape
+    assert data["afoArgFreezeEnabled"].shape == expect_shape
+    assert data["afoTmAreAttitudeState_0"].shape == expect_shape
+    assert data["afoTmAreAttitudeState_1"].shape == expect_shape
+    assert data["afoTmAreAttitudeState_2"].shape == expect_shape
+    assert data["afoTmAreAttitudeState_3"].shape == expect_shape
+    assert data["afoTmAreRateScb_0"].shape == expect_shape
+    assert data["afoTmAreRateScb_1"].shape == expect_shape
+    assert data["afoTmAreRateScb_2"].shape == expect_shape
 
 
 def test_to_utc():

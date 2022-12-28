@@ -21,11 +21,11 @@ class BaseRecord(Enum):
 
 
 class PowerRecord(BaseRecord):
-    time = ("__common__/SCET", TIME_KEY)
-    main_bus_voltage = ("eciMpduMainBusVoltage/raw", "eciMpduMainBusVoltage")
-    power_heat_str = ("ecoUnitPower_heatStr/raw", "ecoUnitPower_heatStr")
-    power_pl_main = ("ecoUnitPower_plMain/raw", "ecoUnitPower_plMain")
-    power_pl_safe = ("ecoUnitPower_plSafe/raw", "ecoUnitPower_plSafe")
+    time = ("Time", TIME_KEY)
+    main_bus_voltage = ("eciMpduMainBusVoltage", "eciMpduMainBusVoltage")
+    power_heat_str = ("ecoUnitPower_heatStr", "ecoUnitPower_heatStr")
+    power_pl_main = ("ecoUnitPower_plMain", "ecoUnitPower_plMain")
+    power_pl_safe = ("ecoUnitPower_plSafe", "ecoUnitPower_plSafe")
 
     @property
     def path(self) -> str:
@@ -33,88 +33,90 @@ class PowerRecord(BaseRecord):
 
 
 class CurrentRecord(BaseRecord):
-    time = ("SCET", TIME_KEY)
-    sco_current_sc_mode = ("raw", "scoCurrentScMode")
+    time = ("Time", TIME_KEY)
+    sco_current_sc_mode = ("scoCurrentScMode", "scoCurrentScMode")
 
     @property
     def path(self) -> str:
-        return f"Level1A/scoCurrentScMode/{self.value[0]}"
+        return f"Level1A/HK_scSysOps_1/{self.value[0]}"
 
 
 class TemperatureRecord(BaseRecord):
-    time = ("__common__/SCET", TIME_KEY)
-    temp_pl = ("tcoTemp_pl/raw", "tcoTemp_pl")
-    temp_sa1 = ("tcoTemp_sa1_payloadIr2/raw", "tcoTemp_sa1_payloadIr2")
-    temp_sa2 = ("tcoTemp_sa2/raw", "tcoTemp_sa2")
-    temp_str = ("tcoTemp_str/raw", "tcoTemp_str")
+    time = ("Time", TIME_KEY)
+    temp_pl = ("tcoTemp_pl", "tcoTemp_pl")
+    temp_sa1 = ("tcoTemp_sa1_payloadIr2", "tcoTemp_sa1_payloadIr2")
+    temp_sa2 = ("tcoTemp_sa2", "tcoTemp_sa2")
+    temp_str = ("tcoTemp_str", "tcoTemp_str")
 
     @property
     def path(self) -> str:
         return f"Level1A/HK_tcThermEssential/{self.value[0]}"
 
 
-class AttitudeRecord(BaseRecord):
+class ReconstructedData(BaseRecord):
     time = ("Time", TIME_KEY)
     attitude_state = ("afsAttitudeState", "afsAttitudeState")
-    attitude_uncertainty = ("afsAttitudeUncertainty", "afsAttitudeUncertainty")
-    rate_uncertainty = ("afsRateUncertainty", "afsRateUncertainty")
-    spacecraft_rate = ("afsSpacecraftRate", "afsSpacecraftRate")
-    tangent_point = ("afsTangentPoint", "afsTangentPoint")
+    gnss_state = ("afsGnssStateJ2000", "afsGnssStateJ2000")
+    long_lat_geod = ("afsTPLongLatGeod", "afsTPLongLatGeod")
+    tangent_wgs84 = ("afsTangentH_wgs84", "afsTangentH_wgs84")
+    tangent_eci = ("afsTangentPointECI", "afsTangentPointECI")
 
     @property
     def path(self) -> str:
-        return f"Level1A/ReconstructedData/PreciseAttitudeEstimation/{self.value[0]}"  # noqa: E501
+        return f"Level1A/ReconstructedData/{self.value[0]}"
 
 
-class OrbitRecord(BaseRecord):
+class AcsSlowOpsRecord(BaseRecord):
     time = ("Time", TIME_KEY)
-    gnss_state = ("acsGnssStateJ2000", "acsGnssStateJ2000")
-    navigation_uncertainty = (
-        "acsNavigationUncertainty",
-        "acsNavigationUncertainty"
-    )
+    alt_offset_0 = ("aciTcLimbPointingAltOffset_0", "aciTcLimbPointingAltOffset_0")  # noqa: E501
+    alt_offset_1 = ("aciTcLimbPointingAltOffset_1", "aciTcLimbPointingAltOffset_1")  # noqa: E501
+    alt_offset_2 = ("aciTcLimbPointingAltOffset_2", "aciTcLimbPointingAltOffset_2")  # noqa: E501
+    propagation_time = ("acoOnGnssPropagationTime", "acoOnGnssPropagationTime")
+    ecef_vx = ("acoOnGnssStateEcef_vx", "acoOnGnssStateEcef_vx")
+    ecef_vy = ("acoOnGnssStateEcef_vy", "acoOnGnssStateEcef_vy")
+    ecef_vz = ("acoOnGnssStateEcef_vz", "acoOnGnssStateEcef_vz")
+    ecef_x = ("acoOnGnssStateEcef_x", "acoOnGnssStateEcef_x")
+    ecef_y = ("acoOnGnssStateEcef_y", "acoOnGnssStateEcef_y")
+    ecef_z = ("acoOnGnssStateEcef_z", "acoOnGnssStateEcef_z")
+    gnss_j2000_vx = ("acoOnGnssStateJ2000_vx", "acoOnGnssStateJ2000_vx")
+    gnss_j2000_vy = ("acoOnGnssStateJ2000_vy", "acoOnGnssStateJ2000_vy")
+    gnss_j2000_vz = ("acoOnGnssStateJ2000_vz", "acoOnGnssStateJ2000_vz")
+    gnss_j2000_x = ("acoOnGnssStateJ2000_x", "acoOnGnssStateJ2000_x")
+    gnss_j2000_y = ("acoOnGnssStateJ2000_y", "acoOnGnssStateJ2000_y")
+    gnss_j2000_z = ("acoOnGnssStateJ2000_z", "acoOnGnssStateJ2000_z")
+    gnss_state_time = ("acoOnGnssStateTime", "acoOnGnssStateTime")
+    tle_j2000_vx = ("acoTleStateJ2000_vx", "acoTleStateJ2000_vx")
+    tle_j2000_vy = ("acoTleStateJ2000_vy", "acoTleStateJ2000_vy")
+    tle_j2000_vz = ("acoTleStateJ2000_vz", "acoTleStateJ2000_vz")
+    tle_j2000_x = ("acoTleStateJ2000_x", "acoTleStateJ2000_x")
+    tle_j2000_y = ("acoTleStateJ2000_y", "acoTleStateJ2000_y")
+    tle_j2000_z = ("acoTleStateJ2000_z", "acoTleStateJ2000_z")
+    tm_arg_gnss_used = ("acoTmArgGnssUsed", "acoTmArgGnssUsed")
+    pitch_angle = ("acoTmArgInstrPitchAngle", "acoTmArgInstrPitchAngle")
+    lptp_x = ("acoTmArgLpTp_x", "acoTmArgLpTp_x")
+    lptp_y = ("acoTmArgLpTp_y", "acoTmArgLpTp_y")
+    lptp_z = ("acoTmArgLpTp_z", "acoTmArgLpTp_z")
+    yaw_comp_angle = ("acoTmArgYawCompAngle", "acoTmArgYawCompAngle")
 
     @property
     def path(self) -> str:
-        return f"Level1A/ReconstructedData/PreciseOrbitEstimation/{self.value[0]}"  # noqa: E501
+        return f"Level1A/TM_acAcsSlowOps/{self.value[0]}"
 
 
-class GnssRecord(BaseRecord):
-    time = ("__common__/SCET", TIME_KEY)
-    propagation_time = (
-        "acoOnGnssPropagationTime/raw",
-        "acoOnGnssPropagationTime"
-    )
-    state_vx = ("acoOnGnssStateEcef_vx/raw", "acoOnGnssStateEcef_vx")
-    state_vy = ("acoOnGnssStateEcef_vy/raw", "acoOnGnssStateEcef_vy")
-    state_vz = ("acoOnGnssStateEcef_vz/raw", "acoOnGnssStateEcef_vz")
-    state_x = ("acoOnGnssStateEcef_x/raw", "acoOnGnssStateEcef_x")
-    state_y = ("acoOnGnssStateEcef_y/raw", "acoOnGnssStateEcef_y")
-    state_z = ("acoOnGnssStateEcef_z/raw", "acoOnGnssStateEcef_z")
-    state_time = ("acoOnGnssStateTime/raw", "acoOnGnssStateTime")
-    valid = ("acoOnGnssValid/raw", "acoOnGnssValid")
+class AcsFastOpsRecord(BaseRecord):
+    time = ("Time", TIME_KEY)
+    freeze_enabled = ("afoArgFreezeEnabled", "afoArgFreezeEnabled")
+    attitude_state_0 = ("afoTmAreAttitudeState_0", "afoTmAreAttitudeState_0")
+    attitude_state_1 = ("afoTmAreAttitudeState_1", "afoTmAreAttitudeState_1")
+    attitude_state_2 = ("afoTmAreAttitudeState_2", "afoTmAreAttitudeState_2")
+    attitude_state_3 = ("afoTmAreAttitudeState_3", "afoTmAreAttitudeState_3")
+    rate_scb_0 = ("afoTmAreRateScb_0", "afoTmAreRateScb_0")
+    rate_scb_1 = ("afoTmAreRateScb_1", "afoTmAreRateScb_1")
+    rate_scb_2 = ("afoTmAreRateScb_2", "afoTmAreRateScb_2")
 
     @property
     def path(self) -> str:
-        return f"Level1A/TM_acGnssOps/{self.value[0]}"
-
-
-class HiRateAttitudeRecord(BaseRecord):
-    time = ("__common__/SCET", TIME_KEY)
-    master_return = ("afiStrMasterReturn/raw", "afiStrMasterReturn")
-    res_quaternion_q0 = ("afiStrResQuaternion_q0/raw", "afiStrResQuaternion_q0")
-    res_quaternion_q1 = ("afiStrResQuaternion_q1/raw", "afiStrResQuaternion_q1")
-    res_quaternion_q2 = ("afiStrResQuaternion_q2/raw", "afiStrResQuaternion_q2")
-    res_quaternion_q3 = ("afiStrResQuaternion_q3/raw", "afiStrResQuaternion_q3")
-    cum_sum_angle_x = ("afoRsaCumSumAngleScb_x/raw", "afoRsaCumSumAngleScb_x")
-    cum_sum_angle_y = ("afoRsaCumSumAngleScb_y/raw", "afoRsaCumSumAngleScb_y")
-    cum_sum_angle_z = ("afoRsaCumSumAngleScb_z/raw", "afoRsaCumSumAngleScb_z")
-    validity_count = ("afoRsaValidityCount/raw", "afoRsaValidityCount")
-    mh_obt = ("afoTmMhObt/raw", "afoTmMhObt")
-
-    @property
-    def path(self) -> str:
-        return f"Level1A/TM_afAcsHiRateAttitudeData/{self.value[0]}"
+        return f"Level1A/TM_afAcsFastOps/{self.value[0]}"
 
 
 def to_utc(gps_datetimes: np.ndarray) -> np.ndarray:
@@ -149,53 +151,40 @@ def get_temperature_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
     return data
 
 
-def get_attitude_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
+def get_reconstructed_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
     return {
-        AttitudeRecord.time.out_name: to_datetime(
-            np.array(h5_file[AttitudeRecord.time.path]).squeeze()
+        ReconstructedData.time.out_name: to_datetime(
+            np.array(h5_file[ReconstructedData.time.path]).squeeze()
         ),
-        AttitudeRecord.attitude_state.out_name: np.array(
-            h5_file[AttitudeRecord.attitude_state.path]
+        ReconstructedData.attitude_state.out_name: np.array(
+            h5_file[ReconstructedData.attitude_state.path]
         ).T.tolist(),
-        AttitudeRecord.attitude_uncertainty.out_name: np.array(
-            h5_file[AttitudeRecord.attitude_uncertainty.path]
-        ).tolist(),
-        AttitudeRecord.rate_uncertainty.out_name: np.array(
-            h5_file[AttitudeRecord.rate_uncertainty.path]
-        ).tolist(),
-        AttitudeRecord.spacecraft_rate.out_name: np.array(
-            h5_file[AttitudeRecord.spacecraft_rate.path]
+        ReconstructedData.gnss_state.out_name: np.array(
+            h5_file[ReconstructedData.gnss_state.path]
+        ).T.tolist(),
+        ReconstructedData.long_lat_geod.out_name: np.array(
+            h5_file[ReconstructedData.long_lat_geod.path]
+        ).T.tolist(),
+        ReconstructedData.tangent_wgs84.out_name: np.array(
+            h5_file[ReconstructedData.tangent_wgs84.path]
+        ).T.tolist(),
+        ReconstructedData.tangent_eci.out_name: np.array(
+            h5_file[ReconstructedData.tangent_eci.path]
         ).T.tolist(),
     }
 
 
-def get_orbit_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
-    time = to_datetime(np.array(h5_file[OrbitRecord.time.path]).squeeze())
-    gnss = np.array(h5_file[OrbitRecord.gnss_state.path]).T
-    uncertainty = np.array(h5_file[OrbitRecord.navigation_uncertainty.path])
-    return {
-        OrbitRecord.time.out_name: time,
-        OrbitRecord.gnss_state.out_name: gnss.tolist(),
-        OrbitRecord.navigation_uncertainty.out_name: (
-            uncertainty[np.newaxis, :, :].repeat(len(time), axis=0).tolist()
-        ),
-        #  AttitudeRecord.tangent_point is added here due to having its time
-        #  axis shared with orbit records rather than attitude records.
-        AttitudeRecord.tangent_point.out_name: np.array(
-            h5_file[AttitudeRecord.tangent_point.path]
-        ).T.tolist(),
-    }
-
-
-def get_gnss_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
-    data = {e.out_name: np.array(h5_file[e.path]) for e in GnssRecord}
-    data[GnssRecord.time.out_name] = to_datetime(data[GnssRecord.time.out_name])
+def get_acs_slow_ops_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
+    data = {e.out_name: np.array(h5_file[e.path]) for e in AcsSlowOpsRecord}
+    data[AcsSlowOpsRecord.time.out_name] = to_datetime(
+        data[AcsSlowOpsRecord.time.out_name]
+    )
     return data
 
 
-def get_hirate_attitude_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
-    data = {e.out_name: np.array(h5_file[e.path]) for e in HiRateAttitudeRecord}
-    data[HiRateAttitudeRecord.time.out_name] = to_datetime(
-        data[HiRateAttitudeRecord.time.out_name]
+def get_acs_fast_ops_records(h5_file: h5py.File) -> Dict[str, np.ndarray]:
+    data = {e.out_name: np.array(h5_file[e.path]) for e in AcsFastOpsRecord}
+    data[AcsFastOpsRecord.time.out_name] = to_datetime(
+        data[AcsFastOpsRecord.time.out_name]
     )
     return data
