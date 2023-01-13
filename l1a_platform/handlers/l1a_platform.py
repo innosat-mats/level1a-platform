@@ -111,22 +111,25 @@ def lambda_handler(event: Event, context: Context):
         get_acs_slow_ops_records,
         get_acs_fast_ops_records,
     ):
-        pq.write_to_dataset(
-            table=read_to_table(f, h5_file),
-            root_path=f"{out_bucket}/{folder_prefix[f]}",
-            basename_template=get_filename(object),
-            existing_data_behavior="overwrite_or_ignore",
-            filesystem=pa.fs.S3FileSystem(
-                region=region,
-                request_timeout=10,
-                connect_timeout=10
-            ),
-            partitioning=ds.partitioning(
-                schema=pa.schema([
-                    ('year', pa.int32()),
-                    ('month', pa.int32()),
-                    ('day', pa.int32()),
-                ]),
-            ),
-            version='2.6',
-        )
+        try:
+            pq.write_to_dataset(
+                table=read_to_table(f, h5_file),
+                root_path=f"{out_bucket}/{folder_prefix[f]}",
+                basename_template=get_filename(object),
+                existing_data_behavior="overwrite_or_ignore",
+                filesystem=pa.fs.S3FileSystem(
+                    region=region,
+                    request_timeout=10,
+                    connect_timeout=10
+                ),
+                partitioning=ds.partitioning(
+                    schema=pa.schema([
+                        ('year', pa.int32()),
+                        ('month', pa.int32()),
+                        ('day', pa.int32()),
+                    ]),
+                ),
+                version='2.6',
+            )
+        except Exception as err:
+            print(f"Could not write group {f} from {file.name}: {err}")
