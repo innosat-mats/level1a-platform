@@ -132,4 +132,4 @@ def lambda_handler(event: Event, context: Context):
                 version='2.6',
             )
         except Exception as err:
-            print(f"Could not write group {f}: {err}")
+            print(f"Could not write group {f} from {file.name}: {err}")
