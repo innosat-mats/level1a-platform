@@ -108,8 +108,8 @@ def lambda_handler(event: Event, context: Context):
         file = download_file(s3_client, in_bucket, object, tempdir)
         h5_file = h5py.File(file)
     except Exception as err:
-            msg = f"Could not get object {object} from {in_bucket}: {err}"
-            raise Level1APlatformException(msg) from err
+        msg = f"Could not get object {object} from {in_bucket}: {err}"
+        raise Level1APlatformException(msg) from err
 
     for f in (
         get_power_records,
