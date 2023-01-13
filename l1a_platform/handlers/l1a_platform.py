@@ -42,6 +42,10 @@ class NothingToDo(Exception):
     pass
 
 
+class Level1APlatformException(Exception):
+    pass
+
+
 def get_or_raise(variable_name: str) -> str:
     if (var := os.environ.get(variable_name)) is None:
         raise EnvironmentError(
@@ -99,9 +103,13 @@ def lambda_handler(event: Event, context: Context):
     object, in_bucket = parse_event_message(event)
     tempdir = TemporaryDirectory()
 
-    s3_client = boto3.client('s3')
-    file = download_file(s3_client, in_bucket, object, tempdir)
-    h5_file = h5py.File(file)
+    try:
+        s3_client = boto3.client('s3')
+        file = download_file(s3_client, in_bucket, object, tempdir)
+        h5_file = h5py.File(file)
+    except Exception as err:
+            msg = f"Could not get object {object} from {in_bucket}: {err}"
+            raise Level1APlatformException(msg) from err
 
     for f in (
         get_power_records,
@@ -131,5 +139,8 @@ def lambda_handler(event: Event, context: Context):
                 ),
                 version='2.6',
             )
+        except KeyError as err:
+            print(f"Could not find group {f} from {file.name}: {err}")
         except Exception as err:
-            print(f"Could not write group {f} from {file.name}: {err}")
+            msg = f"Could not process group {f} from {file.name}: {err}"
+            raise Level1APlatformException(msg) from err
